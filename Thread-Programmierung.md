@@ -105,6 +105,6 @@ Beispiele für mögliche Abläufe:
 - ⓐ ① ⓑ ② ⓒ ③ (schlamm)
 - …
 
-![](IMG_8626.JPG)
+![Race Condition](Race%20Condition.jpg "Race Condition")
 
 Da bei jedem Test der Zeitplaner eine andere Ausführungsreihenfolge („Umstände des Wettrennens“, engl. race condition) wählen kann, ist der Test praktisch nicht reproduzierbar. Wegen der großen Anzahl möglicher Abläufe ist ein systematisches Testen aussichtslos („Zustandsexplosion“).
