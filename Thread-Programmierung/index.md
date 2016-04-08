@@ -75,8 +75,7 @@ Auch Mischformen sind möglich.
 - **Bearbeitungszeit (engl. wall clock time)** := umfasst auch Wartezeiten
 
 ##### Amdahlsches Gesetz (Gene Amdahl 1967):
-> Wenn eine Aufgabe die Bearbeitungszeit `a` benötigt, und der Anteil `0 ≤ p ≤ 1` davon parallelisiert ist, dann benötigt sie die Bearbeitungszeit  
-> `a * (1 - p + p/n)`.
+> Wenn eine Aufgabe die Bearbeitungszeit `a` benötigt, und der Anteil `0 ≤ p ≤ 1` davon parallelisiert ist, dann benötigt sie die Bearbeitungszeit `a * (1 - p + p/n)`.
 
 Beispiel: `p = 9/10, n = 100`.
 Beschleunigung (engl. speedup) = `a / (a (1 - p + p/n))` = `1 / (1 - 9/10 + 9/1000)` ≈ 9,17
@@ -108,3 +107,89 @@ Beispiele für mögliche Abläufe:
 ![Race Condition](Race%20Condition.jpg "Race Condition")
 
 Da bei jedem Test der Zeitplaner eine andere Ausführungsreihenfolge („Umstände des Wettrennens“, engl. race condition) wählen kann, ist der Test praktisch nicht reproduzierbar. Wegen der großen Anzahl möglicher Abläufe ist ein systematisches Testen aussichtslos („Zustandsexplosion“).
+
+## Seminare
+### Aufgabe 1:
+Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt werden. Jeder Thread *i* soll auf dem Bildschirm ausgeben „Hello World from Thread *i*“.
+
+##### Muster:
+	import java.lang.threads.*;
+	
+	public static void main() {
+		Thread[] threads = new Thread[8];
+		for (int i = 0; i < 8; i++) {
+			final int c = i;
+			thread[i] = new Thread(
+				new Runnable() {
+					public void run() {
+						System.out.println(
+							"Hello World from Thread " + c
+						);
+					}
+				}
+			);
+		}
+		for (int i = 0; i < 8; i++) {
+			thread[i].start();
+		}
+		for (int i = 0; i < 8; i++) {
+			thread[i].join();
+		}
+	}
+
+### Aufgabe 2:
+1. Es soll ein Java-Hauptprogramm geschrieben werden, in dem eine globale Variable *z* auf 0 initialisiert wird und von jedem der 10000 Threads inkrementiert wird. Interpretieren Sie das Ergebnis.
+2. Ersetzen Sie z++ durch den Aufruf einer Methode.
+
+##### Muster 1:
+	import java.lang.threads.*;
+	
+	static int z = 0;
+	
+	public static void main() {
+		Thread[] threads = new Thread[8];
+		for (int i = 0; i < 10000; i++) {
+			final int c = i;
+			thread[i] = new Thread(
+				new Runnable() {
+					public void run() {
+						z++;
+					}
+				}
+			);
+		}
+		for (int i = 0; i < 10000; i++) {
+			thread[i].start();
+		}
+		for (int i = 0; i < 10000; i++) {
+			thread[i].join();
+		}
+	}
+---- 
+##### Muster 2:
+	import java.lang.threads.*;
+	
+	static int z = 0;
+	
+	public static void main() {
+		Thread[] threads = new Thread[8];
+		for (int i = 0; i < 10000; i++) {
+			final int c = i;
+			thread[i] = new Thread(
+				new Runnable() {
+					public void run() {
+						inc();
+					}
+				}
+			);
+		}
+		for (int i = 0; i < 10000; i++) {
+			thread[i].start();
+		}
+		for (int i = 0; i < 10000; i++) {
+			thread[i].join();
+		}
+	}
+	synchronized static void inc() {
+		z++;
+	}
