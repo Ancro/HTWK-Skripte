@@ -2,3 +2,6 @@
 .Ulysses-Group.plist
 
 .Ulysses-favorites.plist
+*/target
+.idea
+*.iml
