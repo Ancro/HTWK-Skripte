@@ -84,7 +84,7 @@ Sogar `lim[n → ∞] 1 / (1 - p + p/n)` = `1 / (1 - p)` = 10.
 
 *Fazit*: Der nicht-parallelisierbare Anteil dominiert die Bearbeitungszeit.
 
-## 1.2. Nicht-Determinismus
+### 1.2. Nicht-Determinismus
 **Nicht-Determinismus** := das Verhalten eines Systems hat Freiheitsgrade
 Nicht-Determinismus hat zwei Anwendungen:
 1. Möglichkeiten des Verhaltens der Systemumgebung zusammenfassen (engl. don’t know nondeterminism).
@@ -99,6 +99,7 @@ Beispiel:
 Thread 1 führt aus ① ② ③.  
 Thread 2 führt aus ⓐ ⓑ ⓒ.  
 Beispiele für mögliche Abläufe:
+
 - ① ⓐ ② ⓑ ③ ⓒ (blau)
 - ⓐ ⓑ ⓒ ① ② ③ (rot)
 - ⓐ ① ⓑ ② ⓒ ③ (schlamm)
@@ -107,6 +108,128 @@ Beispiele für mögliche Abläufe:
 ![Race Condition](Race%20Condition.jpg "Race Condition")
 
 Da bei jedem Test der Zeitplaner eine andere Ausführungsreihenfolge („Umstände des Wettrennens“, engl. race condition) wählen kann, ist der Test praktisch nicht reproduzierbar. Wegen der großen Anzahl möglicher Abläufe ist ein systematisches Testen aussichtslos („Zustandsexplosion“).
+
+Der Entickler muss deswegen die Korrektheit seines Programmes mathematisch beweisen („verifizieren“). Um Flüchtigkeitsfehler und übersehene Spezialfälle auszuschließen, führt man die Beweise mit Assistenzwerkzeugen durch und lässt die Beweise maschinell überprüfen: „Formale Verfifikation“.
+
+Threads sind asynchron, das heißt, sie laufen mit verschiedenen Geschwindigkeiten. Es treten Wartezeiten auf, deren Zeitpunkt und Dauer nicht vorhersehbar ist, z.B. eine neue Speicherseite muss geladen werden („page fault“), oder ein Zugriff auf den Zwischenspeicher (cache) scheitert.
+
+### 1.3. Kritische Bereiche
+Beispiel: Zähler mit Threads *z* ist eine *gemeinsame Variable* (auch: gemeinsamer Speicher, engl. shared memory,  gemeinsames Objekt)
+
+z++ wird vom Compiler sinngemäß so übersetzt:
+1. `int temp := z;`
+2. `temp := temp + 1;`
+3. `z := temp;`
+
+Beispielablauf für 3 verschiedene Threads:  
+Sei z = 0 zu Anfang. Jeder Thread hat seine Version von temp. Der Wert von *z* sollte am Ende 3 sein.
+
+|      p1      ||      p2      ||      p3      || z
+| Zeile | temp1 | Zeile | temp2 | Zeile | temp3 | 0
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-:
+|   1   |   0   |       |       |       |       |
+|       |       |   1   |   0   |       |       |
+|       |       |   2   |   1   |       |       |
+|       |       |   3   |       |       |       | 1
+|       |       |       |       |   1   |   1   |
+|       |       |       |       |   2   |   2   |
+|       |       |       |       |   3   |       | 2
+|   2   |   1   |       |       |       |       |
+|   3   |       |       |       |       |       | 1
+
+Threads `p1`, `p2` `p3` kommen sich gegenseitig in die Quere: *Einmischung* (eng. interference). Einmischung kann es nur über gemeinsame Variablen geben. Eine Methode, Einmischung zu verhindern, ist die Verwendung von kritischen Bereichen.
+
+Kritischer Bereich (auch: kritischer Abschnitt, engl. critical region, critical section) := Programmfragment, in dem sich zu jedem Zeitpunkt höchstens ein Thread befindet.
+
+Ein kritischer Bereich ist ein „exklusives“ Betriebsmittel. Wenn sich ein Thread im kritischen Bereich befindet, dann werden alle anderen Threads davon abgehalten, den kritischen Bereich zu betreten (*„gegenseitiger Ausschluss“*, engl. mutual exclusion).
+
+Beispiele für exklusive Betriebsmittel:
+- Rechnerkern
+- Schreibzugriff auf Speicherblock
+- Schreibzugriff auf Bus
+- Drucker
+
+Schreibweise: `gemeinsam int z := 0;`  
+(deklariert eine gemeinsame Variable z)
+
+	kritisch z {
+		z++
+	}
+
+Nur innerhalb des kritischen Bereichs darf auf die gemeinsame Variable zugegriffen werden. Wenn kritische Bereiche als Sprachkonstrukt gegeben sind, kann der Compiler die korrekte Verwendung kritischer Bereiche überprüfen.
+
+### 1.4. Sperren
+Sperre (engl. lock) := Datenstruktur mit zwei möglichen Zuständen („belegt“ und „frei“) und zwei Zugriffsoperationen („belegen“ und „freigeben“).
+
+Sperre `l` ist frei, wenn `l.frei` = `true`.
+
+	belegen(l):
+		Warten solange l.frei = false.
+		Setze l.frei = false.
+	
+	freigeben(l):
+		Setze l.frei = true.
+
+Sperren können verwendet werden, um kritische Bereiche zu implementieren.
+
+Beispiel: Sperre `l` beacht die gemeinsame Variable *z*.  
+Programm:
+- Sperre `l` anlegen mit `l.frei = false`.
+- Threads anlegen. Setze gemeinsame Variable z = 0.
+- `freigeben(l)`.
+
+Thread: 
+- ⓪ `belegen(l);`
+- ① ② ③ `z++;`
+- ④ `freigeben(l);`
+
+---- 
+
+Beispielablauf für 2 Threads nach `freigeben(l)` des Hauptprogramms:
+
+	      p1      |       p2      | z | l.frei | Bemerkung
+	--------------|---------------|---|--------|----------
+	Zeile | temp1 | Zeile | temp2 | 0 |  true  |
+	------|-------|-------|-------|   |  false |
+	   0  |       |       |       |   |        |
+	      |       |   0   |       |   |        | p2 wartet in Z. 0
+	   1  |   0   |   0   |       |   |        |
+	   2  |   1   |   0   |       |   |        | 
+	   3  |       |   0   |       | 1 |        |
+	   4  |       |   0   |       |   |  true  |
+	      |       |   0   |       |   |  false | Ende der Wartezeit
+	      |       |   1   |   1   |   |        |
+	      |       |   2   |   2   |   |        |
+	      |       |   3   |       | 2 |        |
+	      |       |   4   |       |   |  true  |
+
+Sprechweise:
+- „Thread `p` *bewirbt sich* für die Sperre `l`“ bedeutet: `p` ruft `belegen(l)` auf
+- „`p` *erwirbt* `l`“ bedeutet: `p` betritt den kritischen Bereich; p beendet den Aufruf `belegen(l)`.
+- „`p` *besitzt* `l`“ bedeutet: `p` ist im kritischen Bereich
+- Streit um die Sperre (engl. lock contention)
+
+## 2. Verifikation
+### 2.1. Zeitliche Abläufe
+Vorgegeben: Menge A von Aktionen
+
+**Ereignis (hier)** := Paar bestehend aus Aktion und Zeitpunkt
+
+Zu einem Ereignis e soll `aktion(e)` die Aktion ausdrücken und `zeit(e)` den Zeitpunkt, an dem die Aktion stattfindet.
+
+Idealisierende Annahmen:
+1. Alles findet praktisch am selben Ort statt (sonst: verteilte Systems)
+	→ Keine Probleme mit der Lichtgeschwindigkeit
+	Zeit (hier) := Newtonsche Zeit
+	Zeitpunkte := reelle Zahlen
+	Newtonsche Zeit verläuft:
+	- absolut, das heißt unabhängig vom Beobachter (sonst: spezielle Relativitätstheorie)
+	- stetif, das heißt ohne Sprünge (sonst: Quantenmechanik)
+	- unbeeinflusst von der Umgebung (z.B. Temperatur, sonst: allgemeine Relativitätstheorie)
+2. Ein Ereignis hat die Dauer Null.
+	Einen Zeitraum kann man darstellen durch die Ereignisse „Beginn des Zeitraumes“ und „Ende des Zeitraumes“.
+3. Gleichzeitige Ereignisse sind gleich:
+	`zeit(e1) = zeit(e2)` ⇒ `e1 = e2`
 
 ## Seminare
 ### Aufgabe 1:
