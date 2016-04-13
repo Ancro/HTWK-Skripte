@@ -124,18 +124,19 @@ z++ wird vom Compiler sinngemäß so übersetzt:
 Beispielablauf für 3 verschiedene Threads:  
 Sei z = 0 zu Anfang. Jeder Thread hat seine Version von temp. Der Wert von *z* sollte am Ende 3 sein.
 
-|      p1      ||      p2      ||      p3      || z
-| Zeile | temp1 | Zeile | temp2 | Zeile | temp3 | 0
-|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-:
-|   1   |   0   |       |       |       |       |
-|       |       |   1   |   0   |       |       |
-|       |       |   2   |   1   |       |       |
-|       |       |   3   |       |       |       | 1
-|       |       |       |       |   1   |   1   |
-|       |       |       |       |   2   |   2   |
-|       |       |       |       |   3   |       | 2
-|   2   |   1   |       |       |       |       |
-|   3   |       |       |       |       |       | 1
+	      p1      |       p2      |       p3      | z
+	--------------|---------------|---------------|---
+	Zeile | temp1 | Zeile | temp2 | Zeile | temp3 | 0
+	------|-------|-------|-------|-------|-------|---
+	   1  |   0   |       |       |       |       |
+	      |       |   1   |   0   |       |       |
+	      |       |   2   |   1   |       |       |
+	      |       |   3   |       |       |       | 1
+	      |       |       |       |   1   |   1   |
+	      |       |       |       |   2   |   2   |
+	      |       |       |       |   3   |       | 2
+	   2  |   1   |       |       |       |       |
+	   3  |       |       |       |       |       | 1
 
 Threads `p1`, `p2` `p3` kommen sich gegenseitig in die Quere: *Einmischung* (eng. interference). Einmischung kann es nur über gemeinsame Variablen geben. Eine Methode, Einmischung zu verhindern, ist die Verwendung von kritischen Bereichen.
 
