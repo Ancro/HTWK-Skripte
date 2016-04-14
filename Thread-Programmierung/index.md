@@ -124,6 +124,7 @@ z++ wird vom Compiler sinngemäß so übersetzt:
 Beispielablauf für 3 verschiedene Threads:  
 Sei z = 0 zu Anfang. Jeder Thread hat seine Version von temp. Der Wert von *z* sollte am Ende 3 sein.
 
+```
 	      p1      |       p2      |       p3      | z
 	--------------|---------------|---------------|---
 	Zeile | temp1 | Zeile | temp2 | Zeile | temp3 | 0
@@ -137,6 +138,7 @@ Sei z = 0 zu Anfang. Jeder Thread hat seine Version von temp. Der Wert von *z* s
 	      |       |       |       |   3   |       | 2
 	   2  |   1   |       |       |       |       |
 	   3  |       |       |       |       |       | 1
+```
 
 Threads `p1`, `p2` `p3` kommen sich gegenseitig in die Quere: *Einmischung* (eng. interference). Einmischung kann es nur über gemeinsame Variablen geben. Eine Methode, Einmischung zu verhindern, ist die Verwendung von kritischen Bereichen.
 
@@ -188,6 +190,7 @@ Thread:
 
 Beispielablauf für 2 Threads nach `freigeben(l)` des Hauptprogramms:
 
+```
 	      p1      |       p2      | z | l.frei | Bemerkung
 	--------------|---------------|---|--------|----------
 	Zeile | temp1 | Zeile | temp2 | 0 |  true  |
@@ -203,6 +206,7 @@ Beispielablauf für 2 Threads nach `freigeben(l)` des Hauptprogramms:
 	      |       |   2   |   2   |   |        |
 	      |       |   3   |       | 2 |        |
 	      |       |   4   |       |   |  true  |
+```
 
 Sprechweise:
 - „Thread `p` *bewirbt sich* für die Sperre `l`“ bedeutet: `p` ruft `belegen(l)` auf
