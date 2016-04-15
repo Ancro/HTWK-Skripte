@@ -75,10 +75,14 @@ Auch Mischformen sind möglich.
 - **Bearbeitungszeit (engl. wall clock time)** := umfasst auch Wartezeiten
 
 ##### Amdahlsches Gesetz (Gene Amdahl 1967):
-> Wenn eine Aufgabe die Bearbeitungszeit `a` benötigt, und der Anteil `0 ≤ p ≤ 1` davon parallelisiert ist, dann benötigt sie die Bearbeitungszeit `a * (1 - p + p/n)`.
+> Wenn eine Aufgabe die Bearbeitungszeit a benötigt, und der Anteil 0 ≤ p ≤ 1 davon parallelisiert ist, dann benötigt sie die Bearbeitungszeit  
+> `a * (1 - p + p/n)`.
 
 Beispiel: `p = 9/10, n = 100`.
-Beschleunigung (engl. speedup) = `a / (a (1 - p + p/n))` = `1 / (1 - 9/10 + 9/1000)` ≈ 9,17
+Beschleunigung (engl. speedup)  
+= `a / (a * (1 - p + p/n))`  
+= `1 / (1 - 9/10 + 9/1000)`  
+≈ 9,17
 
 Sogar `lim[n → ∞] 1 / (1 - p + p/n)` = `1 / (1 - p)` = 10.
 
@@ -140,7 +144,7 @@ Sei z = 0 zu Anfang. Jeder Thread hat seine Version von temp. Der Wert von *z* s
 	   3  |       |       |       |       |       | 1
 ```
 
-Threads `p1`, `p2` `p3` kommen sich gegenseitig in die Quere: *Einmischung* (eng. interference). Einmischung kann es nur über gemeinsame Variablen geben. Eine Methode, Einmischung zu verhindern, ist die Verwendung von kritischen Bereichen.
+Threads p1, p2 p3 kommen sich gegenseitig in die Quere: *Einmischung* (eng. interference). Einmischung kann es nur über gemeinsame Variablen geben. Eine Methode, Einmischung zu verhindern, ist die Verwendung von kritischen Bereichen.
 
 Kritischer Bereich (auch: kritischer Abschnitt, engl. critical region, critical section) := Programmfragment, in dem sich zu jedem Zeitpunkt höchstens ein Thread befindet.
 
@@ -185,8 +189,6 @@ Thread:
 - ⓪ `belegen(l);`
 - ① ② ③ `z++;`
 - ④ `freigeben(l);`
-
----- 
 
 Beispielablauf für 2 Threads nach `freigeben(l)` des Hauptprogramms:
 
@@ -293,7 +295,7 @@ Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt wer
 			thread[i].join();
 		}
 	}
----- 
+
 ##### Muster 2:
 	import java.lang.threads.*;
 	
@@ -321,3 +323,34 @@ Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt wer
 	synchronized static void inc() {
 		z++;
 	}
+
+### Aufgabe: Amdahls Gesetz
+1. Finden Sie heraus, welcher Anteil der Zähler-Aufgabe (mit k = 10000 Threads) parallelisierbar ist.
+2. Welchen Anteil erwarten Sie für k = 20000 Threads?
+3. Wie weit kann man die Bearbeitung durch Parallelisierung beschleunigen, wenn man beliebig viele Prozessoren zur Verfügung hat?
+
+##### Lösung:
+Parallelisierter Anteil: `p = ((b / a - 1) * n) / (1 - n)`  
+a: serielle Bearbeitungszeit; b: parallele Bearbeitungszeit
+
+Beschleunigung: `1 / (1 - p)`.
+
+### Aufgabe: Verschränkung (1)
+Thread p habe m Schritte, Thread q habe n Schritte auszuführen.
+1. Geben Sie eine rekursive Definition an für die Anzahl anz(m, n) der möglichen verschränkten Abläufe von p und q.
+2. Finden Sie einen geschlossenen Ausdruck für anz(m, n).
+3. Schätzen Sie die Größenordnung von anz(n, n).
+
+##### Lösung:
+1. `anz(m, n) = { 1, falls m = 0 oder n = 0`  
+	`            { anz(m - 1, n) + anz(m, n - 1), sonst`
+2. Wegbeschreibung = Bitvektor mit m Nullen und n Einsen  
+	(0 ≙ 1 Schritt nach rechts, 1 ≙ 1 Schritt nach unten)
+	Länge des Bitvektors ist m + n.
+	Isomorph zu Bitvektor mit m Nullen und n Einsen sind n-Teilmengen einer (m+n)-Menge.
+	Beispiel: Bitvektor `011010`
+	(m+n)-Menge sei `{1, …, m + n}`.
+	Dargestellte Teilmenge ist `{2, 3, 5}`.
+	Satz: Die Anzahl der k-Teilmengen einer n-Menge ist *n über k* (Binomialkoeffizient).
+	Es gilt `anz(m, n)` = `(m + n)` *über* `n`.
+3. Behauptung: `anz(n, n)` = `2n` *über* `n` ≥ 2ⁿ.
