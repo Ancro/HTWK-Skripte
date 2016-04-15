@@ -121,6 +121,7 @@ Threads sind asynchron, das heißt, sie laufen mit verschiedenen Geschwindigkeit
 Beispiel: Zähler mit Threads *z* ist eine *gemeinsame Variable* (auch: gemeinsamer Speicher, engl. shared memory,  gemeinsames Objekt)
 
 z++ wird vom Compiler sinngemäß so übersetzt:
+
 1. `int temp := z;`
 2. `temp := temp + 1;`
 3. `z := temp;`
