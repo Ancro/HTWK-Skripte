@@ -197,8 +197,8 @@ Beispielablauf für 2 Threads nach `freigeben(l)` des Hauptprogramms:
 	      p1      |       p2      | z | l.frei | Bemerkung
 	--------------|---------------|---|--------|----------
 	Zeile | temp1 | Zeile | temp2 | 0 |  true  |
-	------|-------|-------|-------|   |  false |
-	   0  |       |       |       |   |        |
+	------|-------|-------|-------|   |        |
+	   0  |       |       |       |   |  false |
 	      |       |   0   |       |   |        | p2 wartet in Z. 0
 	   1  |   0   |   0   |       |   |        |
 	   2  |   1   |   0   |       |   |        | 
@@ -237,7 +237,114 @@ Idealisierende Annahmen:
 2. Ein Ereignis hat die Dauer Null.
 	Einen Zeitraum kann man darstellen durch die Ereignisse „Beginn des Zeitraumes“ und „Ende des Zeitraumes“.
 3. Gleichzeitige Ereignisse sind gleich:
-	`zeit(e1) = zeit(e2)` ⇒ `e1 = e2`
+	`zeit(e₁) = zeit(e₂)` ⇒ `e₁ = e₂`
+
+**Diskreter zeitlicher Ablauf (auch: Geschichte)** := Menge E von Ereignissen sodass
+
+1. die Menge der Zeitpunkte von E keinen Häufungspunkt und
+2. die Menge der Zeitpunkte von E ein kleinstes Element hat.
+
+Sonst: kontinuierliche Vorgänge (Reaktive Systeme).
+
+Inkrement sind hier nicht die Zeitpunkte selber, sondern nur deren Lage zueinander, das heißt die Reihenfolge der Aktionen. Sonst: Echtzeitsysteme.
+
+Relation „→“ „kommt vor“ zwischen Ereignissen ist definiert als:
+
+	e₁ → e₂ ⟺ zeit(e₁) < zeit(e₂)
+(Leslie Lamport 1978)
+
+Es gilt: → ist irreflexiv, transitiv, total, fundiert (also eine Wohlordnung).
+
+##### Definition
+Eine Relation R ≤ E ⨉ E auf der Menge E heißt
+
+- *irreflexiv,* falls für alle e ∈ E gilt, (e, e) ∉ R.
+- *transitiv,* falls für alle e₁, e₂, e₃ ∈ E gilt:
+	Falls (e₁, e₂) ∈ R und (e₂, e₃) ∈ R, dann (e₁, e₃) ∈ R.
+- *total,* für alle e₁, e₂ ∈ E gilt:
+	Falls e₁ ≠ e₂, dann (e₁, e₂) ∈ R oder (e₂, e₁) ∈ R.
+- *fundiert,* falls es keine unendliche Folge (eᵢ)\_(i ∈ N) gibt mit eᵢ ∈ E für alle i ∈ N  
+	i ↦ eᵢ  
+	und (eᵢ, eᵢ₊₁) ∈ R für alle i ∈ N.
+
+###### Einschub:
+R ist *azyklisch,* falls es keine endliche Folge (e₁, … eᵢ) gibt mit (e₁, e₂) ∈ R, (e₂, e₃) ∈ R, …, (eᵢ₋₁, eᵢ) ∈ R, (eᵢ, e₁) ∈ R.
+
+Es gilt: Falls R irreflexiv und transitiv ist, dann ist R auch azyklisch. Für eine nicht leere Geschichte E sei *min E* definiert als das kleinste Element von E bezüglich →, das heißt dasjenige e ∈ E, für das gilt: ∀ f ∈ E \\{e}: e → f  
+(Das ist eine implizite Definition, also schlecht. [Anm. d. schreib. Stud.])
+
+**Implizite Definition** := Definition durch eine charakteristische Eigenschaft.
+
+**Wohldefiniertheit der impliziten Definition** := Es gibt genau ein Objekt, das die charakteristische Eigenschaft erfüllt.
+
+Wohldefiniertheit von *min E* gilt, weil → total und E (mindestens) ein kleinstes Element hat.
+
+Das i-te Ereignis aus E (in Symbolen Eⁱ) ist dann für i ∈ N, i ≤ |E| rekursiv definiert durch
+
+	Eⁱ = { min E, falls i = 1,
+	     { (E\{min E}ⁱ⁻¹, sonst
+
+Auch hier ist die Wohldefiniertheit zu zeigen.
+
+Projektion auf eine Menge B von Aktionen („Sicht“):
+
+	(π_B)(E) := {e ∈ E | aktion(e) ∈ B}
+
+Zustand zum Zeitpunkt t ∈ R:
+
+	(z_t)(E) := {e ∈ E | zeit(e) < t}.
+
+„→“ für Zeiträume:
+
+![](Zeitra%CC%88ume.jpg)
+
+A → B: ⟺ Ende des Zeitraums A kommt vor Beginn des Zeitraums B  
+Es gilt: → für Zeiträume ist **nicht** total.  
+Wenn sich A und B überlappen, gilt weder A → B noch B → A.
+
+**Prozessalphabet ⍺(p)** := Menge der Aktionen, die der Thread p „sieht“
+
+Gemeinsame Aktionen von p₁ und p₂: ⍺(p₁)∩⍺(p₂)
+
+**Einigkeit (engl. match)** := Ereignisse mit gemeinsamen Aktionen finden gemeinsam statt:
+
+1. (π\_(⍺(p₁)∩⍺(p₂))(E₁∪E₂) = E₁∩E₂
+	Gleichwertig zu 1. sind:
+2. (π\_(⍺(p₁)∩⍺(p₂))(E₁⊗E₂) = Ø
+3. (π\_⍺(p₁)(E₂) = (π\_⍺(p₂)(E₁)
+
+![](Venn-Diagramm.jpg)
+
+Eᵢ Ereignisse von Thread i  
+Es gilt: ∀ e ∈ Eᵢ: aktion(e) ∈ ⍺(pᵢ)  
+Faire Mischung: E₁∪E₂  
+Es gilt: (π\_⍺(pᵢ))(E₁∪E₂) = Eᵢ, für i ∈ {1, 2}, falls sich p₁ und p₂ einig sind.
+
+### 2.2. Serielle Abläufe
+Wenn man nicht an den Zeitpunkten der Ereignisse interessiert ist, sondern nur an ihrer Lage zueinander, kann man statt einer Ereignismenge auch eine Aktionenfolge als Beschreibungsmittel für einen Ablauf nehmen.
+
+Beispiele: Sei A = {a, b}.  
+Endliche Folge (a, b, a) kann auch dargestellt werden als Funktion  
+f: {1, 2, 3} → A mit
+
+	f(x) = { a, falls x = 1 oder x = 3,
+	       { b, sonst.
+
+Wertetabelle von f:
+
+```
+	  x  | 1 2 3
+	-----|-------
+	f(x) | a b a
+```
+Unendliche Folge (a, b, b, a, b, b, …) als Funktion f: N → A mit
+
+	f(x) = { a, falls x mod 3 = 1
+	       { b, sonst.
+
+(Miteinander identifiziert:)  
+Aᵏ k-Tupel von Elementen aus A  
+{i ∈ N | i ≤ k} → A Folgen der Länge k
 
 ## Seminare
 ### Aufgabe 1:
