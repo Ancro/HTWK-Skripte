@@ -296,7 +296,7 @@ Zustand zum Zeitpunkt t ∈ R:
 
 „→“ für Zeiträume:
 
-![](Zeitra%CC%88ume.jpg)
+![](Zeitraeume.jpg)
 
 A → B: ⟺ Ende des Zeitraums A kommt vor Beginn des Zeitraums B  
 Es gilt: → für Zeiträume ist **nicht** total.  
@@ -450,8 +450,8 @@ Thread p habe m Schritte, Thread q habe n Schritte auszuführen.
 3. Schätzen Sie die Größenordnung von anz(n, n).
 
 ##### Lösung:
-1. `anz(m, n) = { 1, falls m = 0 oder n = 0`  
-	`            { anz(m - 1, n) + anz(m, n - 1), sonst`
+	anz(m, n) = { 1, falls m = 0 oder n = 0
+		            { anz(m - 1, n) + anz(m, n - 1), sonst
 2. Wegbeschreibung = Bitvektor mit m Nullen und n Einsen  
 	(0 ≙ 1 Schritt nach rechts, 1 ≙ 1 Schritt nach unten)
 	Länge des Bitvektors ist m + n.
