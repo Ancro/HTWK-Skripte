@@ -308,9 +308,9 @@ Gemeinsame Aktionen von p₁ und p₂: ⍺(p₁)∩⍺(p₂)
 
 **Einigkeit (engl. match)** := Ereignisse mit gemeinsamen Aktionen finden gemeinsam statt:
 
-1. (π\_(⍺(p₁)∩⍺(p₂))(E₁∪E₂) = E₁∩E₂
+1. (π\_(⍺(p₁) ∩ ⍺(p₂))(E₁ ∪ E₂) = E₁ ∩ E₂
 	Gleichwertig zu 1. sind:
-2. (π\_(⍺(p₁)∩⍺(p₂))(E₁⊗E₂) = Ø
+2. (π\_(⍺(p₁) ∩ ⍺(p₂))(E₁ ⊗ E₂) = Ø
 3. (π\_⍺(p₁)(E₂) = (π\_⍺(p₂)(E₁)
 
 ![](Venn-Diagramm.jpg)
@@ -463,4 +463,74 @@ Thread p habe m Schritte, Thread q habe n Schritte auszuführen.
 	Dargestellte Teilmenge ist `{2, 3, 5}`.
 	Satz: Die Anzahl der k-Teilmengen einer n-Menge ist *n über k* (Binomialkoeffizient).
 	Es gilt `anz(m, n)` = `(m + n)` *über* `n`.
-3. Behauptung: `anz(n, n)` = `2n` *über* `n` ≥ 2ⁿ.
+3. Behauptung: `anz(n, n)` = `2n` *über* `n` ≥ 2ⁿ - 1 für n ≥ 1.
+	Beweis:
+	1. n = 1: `anz(n, n)` = `2` *über* `1` = 2
+	2. n \> 1: `anz(n, n)` = `2n` *über* `n` = `2n - 1` *über* `n` + `2n - 1` *über* `n - 1` ≥  
+		`2ⁿ` = `2 * 2ⁿ⁻¹` ≤ `2 * 2 (n - 1)` *über* `n - 1` ≤  
+		weil `2n - 1` *über* `n - 1` ≥ `2n - 2` *über* `n - 1` und `2n - 1` *über* `n` ≥ `2n - 2` *über* `n - 1`  
+		`2n - 1` *über* `n - 1` = `2n - 2` *über* `n - 1` + `2n - 2` *über* `n - 2`
+
+### Umgang mit Sperren in Java:
+	package.…;
+	import java.util.concurrent.locks.*;
+	…
+	private static Lock lock;
+	…
+	lock = new ReentrantLock();
+	…
+	lock.lock();
+	try {
+		… // kritischer Bereich
+	}
+	finally {
+		lock.unlock();
+	}
+
+`lock.unlock` wird immer abschließend ausgeführt, auch wenn der try-Block eine Ausnahme auslöst.
+
+### Aufgabe: Verschränkung (2)
+n Threads sollen verschränkt zueinander laufen. Jeder Thread habe 2 Schritte auszuführen.
+
+1. Geben Sie eine rekursive Definition an für die Anzahl anz\*(n) der möglichen Abläufe.
+2. Finden Sie einen geschlossenen Ausdruck für anz\*(n).
+3. Schätzen Sie die Größenordnung von anz\*(n).
+
+##### Lösung:
+1. Es gilt anz\*(1) = 1. Sei nun n \> 1. Nach IV liefert anz\*(n - 1) die Anzahl der möglichen Abläufe für n - 1 Threads.
+	![](Schrittverteilung.jpg)
+	Also gilt:
+
+		anz*(n) = {1, falls n = 1,
+		          {anz*(n-1) * (2n-1) * (n-1), sonst.
+
+### Aufgabe: Zeitliche Abläufe
+1. Geben Sie zu folgendem zeitlichen Ablauf den passenden seriellen Ablauf (Aktionenfolge) an:  
+	{(a, 5.3), (b, 3.7), (c, 3.2), (a, 1.7), (a, 2.1), (b, 2.5)}.
+	##### Lösung:
+	{(a, 1.7), (a, 2.1), (b, 2.5), (c, 3.2), (b, 3.7), (a, 5.3)}
+
+		f(x) = { a, falls x ∈ {1, 2, 6}
+		       { b, falls x ∈ {3, 5}
+		       { c, sonst
+
+2. Welche der folgenden Mengen von Ereignissen sind diskrete zeitliche Abläufe? Dazu sei A = {a, b}.  
+	⍺) {(a, -3), (a, 25), (b, 2)} **✓**  
+	β) {a} ⨉ N **✓**  
+	ɣ) {a} ⨉ Z⁻**✗** (kein kleinstes Element)  
+	ƍ) {(a, 1 + (1/i) | i ∈ N} ∪ {(a, 0)} **✗** (Häufung bei t = 1  
+	ε) {(a, 1 + (1/i) | i ∈ N, i \< 100} **✓**  
+	ζ) {a, 3), (b, 5), (b, 3)} **✗** (verschiedene gleichzeitige Ereignisse)
+3. Geben Sie zu jedem diskreten zeitlichen Ablauf aus Teilaufgabe 2 die Ereignisse E¹, E², E³ an.  
+	⍺: E¹ = (a, - 3), E² = (b, 2), E³ = (a, 25).  
+	β: E¹ = (a, 1), E² = (a, 2), E³ = (a, 3).  
+	ε: E¹ = (a, 1 + (1/99)), E² = (a, 1 + (1/98)), E³ = (a, 1 + (1/97)).
+
+### Aufgabe: Einigkeit
+Beweisen Sie, dass für alle Threads p₁, p₂ folgende Aussagen äquivalent sind:  
+⍺) (π\_A₁ ∩ A₂)(E₁ ∪ E₂) = E₁ ∩ E₂  
+β) (π\_A₁ ∩ A₂)(E₁ ⊕ E₂) = Ø  
+ɣ) (π\_A₁)(E₂) = (π\_A₂)(E₁)
+
+Dabei sei Aᵢ das Prozessalphabet von Thread pᵢ und Eᵢ der zeitliche Ablauf von Thread pᵢ, i ∈ {1, 2}.  
+Dann gilt: (π\_Aᵢ(Eᵢ) = Eᵢ
