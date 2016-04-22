@@ -445,12 +445,14 @@ Beschleunigung: `1 / (1 - p)`.
 
 ### Aufgabe: Verschränkung (1)
 Thread p habe m Schritte, Thread q habe n Schritte auszuführen.
+
 1. Geben Sie eine rekursive Definition an für die Anzahl anz(m, n) der möglichen verschränkten Abläufe von p und q.
 2. Finden Sie einen geschlossenen Ausdruck für anz(m, n).
 3. Schätzen Sie die Größenordnung von anz(n, n).
 
 ##### Lösung:
-	anz(m, n) = { 1, falls m = 0 oder n = 0
+1. Formel:
+		anz(m, n) = { 1, falls m = 0 oder n = 0
 		            { anz(m - 1, n) + anz(m, n - 1), sonst
 2. Wegbeschreibung = Bitvektor mit m Nullen und n Einsen  
 	(0 ≙ 1 Schritt nach rechts, 1 ≙ 1 Schritt nach unten)
