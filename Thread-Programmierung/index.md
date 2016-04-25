@@ -263,7 +263,7 @@ Eine Relation R ≤ E ⨉ E auf der Menge E heißt
 	Falls (e₁, e₂) ∈ R und (e₂, e₃) ∈ R, dann (e₁, e₃) ∈ R.
 - *total,* für alle e₁, e₂ ∈ E gilt:
 	Falls e₁ ≠ e₂, dann (e₁, e₂) ∈ R oder (e₂, e₁) ∈ R.
-- *fundiert,* falls es keine unendliche Folge (eᵢ)\_(i ∈ N) gibt mit eᵢ ∈ E für alle i ∈ N  
+- *fundiert,* falls es keine unendliche Folge (eᵢ)\_{i ∈ N} gibt mit eᵢ ∈ E für alle i ∈ N  
 	i ↦ eᵢ  
 	und (eᵢ, eᵢ₊₁) ∈ R für alle i ∈ N.
 
@@ -308,17 +308,17 @@ Gemeinsame Aktionen von p₁ und p₂: ⍺(p₁)∩⍺(p₂)
 
 **Einigkeit (engl. match)** := Ereignisse mit gemeinsamen Aktionen finden gemeinsam statt:
 
-1. (π\_(⍺(p₁) ∩ ⍺(p₂))(E₁ ∪ E₂) = E₁ ∩ E₂
+1. π\_{⍺(p₁) ∩ ⍺(p₂)}(E₁ ∪ E₂) = E₁ ∩ E₂
 	Gleichwertig zu 1. sind:
-2. (π\_(⍺(p₁) ∩ ⍺(p₂))(E₁ ⊗ E₂) = Ø
-3. (π\_⍺(p₁)(E₂) = (π\_⍺(p₂)(E₁)
+2. π\_{⍺(p₁) ∩ ⍺(p₂)}(E₁ ⊗ E₂) = Ø
+3. π\_{⍺(p₁)}(E₂) = π\_{⍺(p₂)}(E₁)
 
 ![](Venn-Diagramm.jpg)
 
 Eᵢ Ereignisse von Thread i  
 Es gilt: ∀ e ∈ Eᵢ: aktion(e) ∈ ⍺(pᵢ)  
 Faire Mischung: E₁∪E₂  
-Es gilt: (π\_⍺(pᵢ))(E₁∪E₂) = Eᵢ, für i ∈ {1, 2}, falls sich p₁ und p₂ einig sind.
+Es gilt: π\_{⍺(pᵢ)}(E₁∪E₂) = Eᵢ, für i ∈ {1, 2}, falls sich p₁ und p₂ einig sind.
 
 ### 2.2. Serielle Abläufe
 Wenn man nicht an den Zeitpunkten der Ereignisse interessiert ist, sondern nur an ihrer Lage zueinander, kann man statt einer Ereignismenge auch eine Aktionenfolge als Beschreibungsmittel für einen Ablauf nehmen.
@@ -528,9 +528,85 @@ n Threads sollen verschränkt zueinander laufen. Jeder Thread habe 2 Schritte au
 
 ### Aufgabe: Einigkeit
 Beweisen Sie, dass für alle Threads p₁, p₂ folgende Aussagen äquivalent sind:  
-⍺) (π\_A₁ ∩ A₂)(E₁ ∪ E₂) = E₁ ∩ E₂  
-β) (π\_A₁ ∩ A₂)(E₁ ⊕ E₂) = Ø  
-ɣ) (π\_A₁)(E₂) = (π\_A₂)(E₁)
+⍺) π\_{A₁ ∩ A₂}(E₁ ∪ E₂) = E₁ ∩ E₂  
+β) π\_{A₁ ∩ A₂}(E₁ ⊕ E₂) = Ø  
+ɣ) π\_{A₁}(E₂) = π\_{A₂}(E₁)
 
 Dabei sei Aᵢ das Prozessalphabet von Thread pᵢ und Eᵢ der zeitliche Ablauf von Thread pᵢ, i ∈ {1, 2}.  
-Dann gilt: (π\_Aᵢ(Eᵢ) = Eᵢ
+Dann gilt: π\_{Aᵢ}(Eᵢ) = Eᵢ
+
+##### Lösung
+###### Zu zeigen: β ⟹ ⍺
+π\_{A₁ ∩ A₂}(E₁ ∪ E₂) = π\_{A₁ ∩ A₂}((E₁ ⊕ E₂) ∪ (E₁ ∩ E₂))  
+= π\_{A₁ ∩ A₂}(E₁ ⊕ E₂) ∪ π\_{A₁ ∩ A₂}(E₁ ∩ E₂)  
+= Ø ∪ π\_{A₁ ∩ A₂}(E₁ ∩ E₂)  
+= π\_{A₁}(π\_{A₂}(E₁ ∩ E₂))  
+= π\_{A₁}(π\_{A₂}(E₁) ∩ π\_{A₂}(E₂))
+
+###### Zu zeigen: ⍺ ⟹ β
+π\_{A₁}(E₁ ⊕ E₂) = π\_{A₁ ∩ A₂}((E₁ ∪ E₂)\\(E₁ ∩ E₂))  
+= π\_{A₁ ∩ A₂}(E₁ ∪ E₂)\\π\_{A₁ ∩ A₂(E₁ ∩ E₂)  
+= (E₁ ∩ E₂)\\(E₁ ∩ E₂) = Ø
+
+###### Zu zeigen: β ⟹ ɣ
+π\_{A₁}(E₁) = π\_{A₂}(E₂)  
+**(1)** π\_{A₁}(E₂)\\π\_{A₂}(E₁) = Ø ⟺ π\_{A₁}(E₂) ≤ π\_{A₂}(E₁)  
+**(2)** π\_{A₂}(E₁)\\π\_{A₁}(E₂) = Ø ⟺ π\_{A₂}(E₁) ≤ π\_{A₁}(E₂)
+
+**(1)** ∩ **(2)**  
+⟺ π\_{A₁}(E₂)\\π\_{A₂}(E₁) ∪ π\_{A₂}(E₁)\\π\_{A₁}(E₂) = Ø  
+⟺ π\_{A₁}(E₂) ⊕ π\_{A₂}(E₁) = Ø
+
+Noch zu zeigen: π\_{A₁ ∩ A₂}(E₁ ⊕ E₂) = π\_{A₁}(E₂) ⊕ π\_{A₂}(E₁)  
+π\_{A₁ ∩ A₂}(E₁ ⊕ E₂) = π\_{A₁}(π\_{A₂}(E₁ ⊕ E₂))  
+= π\_{A₁}(π\_{A₂}(E₁) ⊕ π\_{A₂}(E₂))  
+= π\_{A₁}(π\_{A₂}(E₁) ⊕ E₂)
+= π\_{A₁}(π\_{A₂}(E₁)) ⊕ π\_{A₁}(E₂)  
+= π\_{A₂}(π\_{A₁}(E₁)) ⊕ π\_{A₁}(E₂)  
+= π\_{A₂}(E₁) ⊕ π\_{A₁}(E₂)
+
+###### Zu zeigen: ɣ ⟹ β
+π\_{A₁ ∩ A₂}(E₁ ⊕ E₂)  
+= π\_{A₁ ∩ A₂}(E₁) ⊕ π\_{A₁ ∩ A₂}(E₂)  
+= π\_{A₁ ∩ A₂}(E₁)\\π\_{A₁ ∩ A₂}(E₂) ∪ π\_{A₁ ∩ A₂}(E₂)\\π\_{A₁ ∩ A₂}(E₁) = Ø
+
+Zu zeigen dazu:  
+π\_{A₁ ∩ A₂}(E₁) = π\_{A₁ ∩ A₂}(E₂)  
+π\_{A₂}(π\_{A₁}(E₁) = π\_{A₁}(π\_{A₂}(E₂)  
+E₁ = E₂
+
+###### Anderer Weg für ɣ ⟹ β
+π\_{A₁ ∩ A₂}(E₁ ⊕ E₂) = π\_{A₁}(π\_{A₂}(E₁ ⊕ E₂))  
+= π\_{A₁}(π\_{A₂}(E₁) ⊕ π\_{A₂}(E₂))  
+= π\_{A₁}(π\_{A₁}(E₂) ⊕ E₂)  
+= π\_{A₁}(E₂) ⊕ π\_{A₁}(E₂) = Ø
+
+### Aufgabe:
+1. Beweisen Sie, dass „→“ eine Wohlordnung (das heißt irreflexiv, transitiv, total, fundiert) ist.
+	##### Lösung
+	- irreflexiv: Beweis durch Widerspruch.  
+		Annahme: e → e gilt.  
+		Nach Definition von „→“ gilt zeit(e) \< zeit(e).  
+		Widerspruch zu \< irreflexiv.
+	- transitiv: a → b & b → c & a → c  
+		zeit(a) \< zeit(b)  
+		zeit(b) \< zeit(c) ⟹ zeit(a) \< zeit(c)
+	- total: zu zeigen für Ereignisse e₁ ≠ e₂ gilt e₁ → e₂ oder e₂ → e₁.  
+		Seien e₁ ≠ e₂ Ereignisse. Dann  
+		zeit(e₁) \< zeit(e₂) oder  
+		zeit(e₂) \< zeit(e₁) oder  
+		zeit(e₁) = zeit(e₂)  
+		weil \< total.  
+		Wenn zeit(e₁) = zeit(e₂), dann e₁ = e₂ nach Vorraussetzung (idealisierende Annahme 3). Widerspruch zu e₁ ≠ e₂.  
+		Also entweder zeit(e₁) \< zeit(e₂).  
+		Damit e₁ → e₂.  
+		Oder es gibt zeit(e₂) \< zeit(e₁).  
+		Damit e₂ → e₁.
+	- fundiert: Zu zeigen: Es gibt keine unendliche ←-Kette. (→ umgekehrt)  
+		Beweis durch Widerspruch.  
+		Annahme: (eᵢ)\_{i ∈ N} sei unendliche ←-Kette.  
+		Damit: eᵢ ← eᵢ₊₁ für alle i ∈ N.  
+		Damit zeit(eᵢ) \> zeit(eᵢ₊₁) für alle i ∈ N wegen Definition von →.  
+		Damit ist (zeit(eᵢ))\_{i ∈ N} eine unendliche \>-Kette.  
+		Widerspruch zu: \< ist fundiert auf N.
+2. Welche der Eigenschaften irreflexiv, transitiv, total, fundiert gelten auch für → auf Zeiträumen?
