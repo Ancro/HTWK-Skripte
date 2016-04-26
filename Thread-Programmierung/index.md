@@ -609,4 +609,90 @@ E₁ = E₂
 		Damit zeit(eᵢ) \> zeit(eᵢ₊₁) für alle i ∈ N wegen Definition von →.  
 		Damit ist (zeit(eᵢ))\_{i ∈ N} eine unendliche \>-Kette.  
 		Widerspruch zu: \< ist fundiert auf N.
-2. Welche der Eigenschaften irreflexiv, transitiv, total, fundiert gelten auch für → auf Zeiträumen?
+2. Welche der Eigenschaften irreflexiv, transitiv, total, fundiert gelten auch für → auf Zeiträumen? 
+	##### Lösung
+	- irreflexiv: A → A gilt nicht, denn Ende von A kommt immer *nach* Anfang von A. Deswegen → irreflexiv.
+	- transitiv: Sei A → B und B → C.  
+		anfang(A), ende(A)  
+		Wenn A Zeitraum, dann anfang(A) → ende(A).  
+		A → B ⟺ ende(A) → anfang(B)  
+		B → C ⟺ ende(B) → anfang(C)  
+		Damit ende(A) → anfang(B) → ende(B) → anfang(C).  
+		Weil → transitiv (auf Ereignissen), deswegen ende(A) → anfang(C), also A → C. Also → transitiv (auf Zeiträumen).
+	- total: Nein, denn Zeiträume können sich überlappen.
+	- fundiert: Behauptung: → fundiert auf Zeiträumen.  
+		Beweis durch Widerspruch.  
+		Annahme: (Aᵢ)\_{i ∈ N} unendliche ←-Kette.  
+		Dann gilt für alle i ∈ N: Aᵢ ← Aᵢ₊₁, das heißt ende(Aᵢ₊₁) → anfang(Aᵢ).  
+		Dann anfang(Aᵢ) ← ende(Aᵢ₊₁) ← anfang(Aᵢ₊₁) (Aᵢ₊₁ ist ein Zeitraum).  
+		Dann anfang(Aᵢ) ← anfang(Aᵢ₊₁) wegen → transitiv.  
+		Also (anfang(Aᵢ))\_{i ∈ N} unendliche ←-Kette (auf Ereignissen).  
+		Widerspruch zu → fundiert (auf Ereignissen).
+
+## Einschub: Threads in Haskell
+Haskell ist eine *funktionale Programmiersprache*, das heißt eigentlich: Haskell unterstützt besonder den funktionalen Programmierstil.
+
+##### Funktionaler Programmierstil:
+- Ausdrücke
+- rekursive Funktionsdefinitionen
+
+###### Zusätzlich:
+- starkes Typsystem
+
+##### Gegensatz: imperativer Stil
+- Anweisungen
+- Schleifen
+
+### Glasgow Haskell Compiler (GHC)
+Bibliothek: `Control.Concurrent`  
+`forkIO p` (Funktionsaufruf mit Funktion `forkIO` und Parameterausdruck `p`) erzeugt einen Thread, in dem das Programm `p` läuft. (:: ≙ „hat den Typ“)
+
+	forkIO :: IO() -> IOThreadId
+
+Typ einer Synchronisationsvariablen, die Werte vom Typ `t` enthält:
+
+	MVar t
+
+v vom Typ `MVar t` kann nie leer sein oder einen Wert (vom Typ `t`) enthalten.
+
+	putMVar :: MVar t → t → IO()
+	putMVar v a
+
+Warten bis v leer ist. Dann v mit Wert a auffüllen.
+
+	takeMVar :: MVar t → IO t
+	takeMVar v
+
+Warten bis v voll ist. Dann den Wert von v entnehmen.
+
+##### Beispiel: Hello-World mit Threads in Haskell:
+	import Control.Concurrent
+	hello i l = do
+		takeMVar l
+		putStrLn("Hallo von " ++ show i)
+		putMVar l ()
+	
+	main = do
+		l <- newEmptyMVar
+		forkIO (hello 1 l) } forM_ [1..4] (\k ->
+		forkIO (hello 2 l) } forkIO (hello k l))
+		forkIO (hello 3 l) } (definiert in
+		forkIO (hello 4 l) } Control.Monad)
+
+##### λ-Abstraktion:
+	forM_ [1..4] (\k -> forkIO (hello k l))
+
+Definition einer anonymen Funktion (Funktion ohne Namen)
+
+	import Control.Concurrent
+	import Control.Monad
+	import Data.IORef
+	
+	inc z = do
+		v <- readIORef z
+		writeIORef z (v + 1)
+	
+	main = do
+		z <- newIORef 0
+		forM_ [1..10000]
+			(\k -> forkIO (inc z))
