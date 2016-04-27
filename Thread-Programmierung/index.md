@@ -346,6 +346,134 @@ Unendliche Folge (a, b, b, a, b, b, …) als Funktion f: N → A mit
 Aᵏ k-Tupel von Elementen aus A  
 {i ∈ N | i ≤ k} → A Folgen der Länge k
 
+Um endliche und unendliche Abläufe einheitlich zu modellieren, bildet man die Positionenmenge
+
+	N_∞ := N₀ ∪ {∞}.
+
+Vergleich ≤ auf N\_{∞} sei definiert durch
+
+	m ≤ n ⟺ (n = ∞) ∨ m, n ∈ N₀ ∧ m ≤ n
+
+Vergleich m ≤ n für m, n ∈ N₀ liefert dasselbe bei ≤ auf N\_{∞} wie bei ≤ auf N₀.  
+Man sagt auch: ≤ auf N\_{∞} ist eine *Fortsetzung* von ≤ auf N₀.
+
+\< auf N\_{∞} sei definiert durch m \< n ⟺ m ≤ n ∧ m ≠ n.
+
+Es gilt: \< auf N\_{∞} ist eine Fortsetzung von \< auf N₀ und eine Wohlordnung.  
+Bemerkung: ≤ lässt sich nicht weiter fortsetzen: „Ordinalzahlen“.
+
+Sei A eine Aktionenmenge.  
+Dann sei A\* := ∪\_{k ∈ N₀} Aᵏ  
+A^{∞} := A\*[^1] ∪ (N → A)[^2]  
+Es gilt: A^{∞} = ∪\_{k ∈ N₀} ({i ∈ N | i ≤ k} → A)  
+Die Länge \#\_{x} einer Aktionenfolge x ist definiert durch
+
+	#_{x} = { ∞, falls x ∈ (N → A)
+	        { k, falls x ∈ Aᵏ
+
+Es gilt \#\_{x} ∈ N\_{∞}.  
+≤\_{pre} ≤ A^{∞} ⨉ A^{∞} sei definiert durch
+
+	x ≤_{pre} y ⟺ #_{x} ≤ #_{y} ∧ ∀ 1 ≤ i ≤ #_x: x(i) = y(i)
+
+Beispiel:  
+x = (a, b, a, a)  
+y = (a, b, a, a, b, a, …)
+
+> „x ist ein Anfangsstück (auch: Päfix, engl. prefix) von y.“
+
+Es gilt ≤\_{pre} ist eine Ordnungsrelation (das heißt ≤\_{pre} ist reflexiv, transitiv und antisymmetrisch).
+
+\<\_{pre} ist definiert durch  
+x \<\_{pre} y ⟺ x ≤\_{pre} y ∧ x ≠ y
+
+„strikter Anteil von ≤\_{pre}“
+
+Es gilt: \<\_{pre} ist eine Striktordnung (das heißt irreflexiv und transitiv).
+
+###### Operationen auf Aktionenfolgen:
+rest: A^{∞}\\{ε[^3]} → A^{∞}  
+ist definiert durch  
+rest(x)(i) = x(i + 1)
+
+Es gilt: \#\_{rest(x)} = ∞, falls \#\_{x} = ∞ und \#\_{rest(x)} = \#\_{x} = 1, sonst.
+
+Konkatenation (= Hintereinanderstellen von Aktionenfolgen) ist definiert durch
+
+	(x * y)(i) = { x(i), falls i ≠ #_{x},
+	             { y(i - #_{x}), sonst.
+	                    ↑ Dieser Fall tritt nicht bei #_{x} = ∞ auf.
+
+Es gilt: x \* y = x, falls  \#\_{x} = ∞.
+
+Projektion π\_{B}: A^{∞} → A^{∞} auf Aktionenmenge B ist rekursiv definiert durch:
+
+	           { ε, falls x = ε,
+	π_{B}(x) = { x(1) * π_{B}(rest(x)), falls 0 < #_x < ∞ & x(1) ∈ B
+	           { π_{B}(rest(x)), falls 0 < #_x < ∞ und x(1) ∉ B
+	           { sup {π_{B}(y) | y <_{pre} x}
+
+Beispiel:  
+x = (a, b, c, a, b, c, …)  
+B = {a, b}  
+Behauptung: π\_{B} = (a, b, a, b, …)  
+Beweis: Es gilt \#\_{x} = ∞  
+Damit π\_{B}(x) = sup {π\_{B}(y) | y \<\_{pre} x}.  
+y₀ := ε[^4]  
+y₁ := (a)[^5]  
+y₂ := (a, b)[^6]  
+y₃ := (a, b, c)[^7]  
+y₄ := (a, b, c, a)[^8]  
+…
+
+Die Anzahl \#\_{B}(x) der Vorkommen von Aktionen aus der Menge B in x ∈ A^{∞} ist definiert durch
+
+	#_{B}(x) = #_{π_{B}(x)}
+
+Seien B ⊆ A, i ∈ N, x ∈ A^{∞}. Dann ist Bⁱ\_{x} definiert duch
+
+	Bⁱ_{x} = #_{B} + 1, falls y * (a) ≤_{pre} x und a ∈ B und #_{B}(y) = i - 1.
+
+Bⁱ\_{x} liefert die Stelle des i-ten Vorkommens von einer Aktion aus B in x.
+
+Wohldefiniertheit ist hier zu zeigen.  
+Unendliche Wiederholung:  
+Für x ∈ Aᵏ ist x^{∞} definiert durch
+
+	x^{∞}(i) = x * ((i - 1) mod k + 1)
+
+`(i - 1) mod k + 1` ist wie `i mod k`, außer wenn i ein Vielfaches von k ist: `(i - 1) mod k + 1` liefert dann k statt 0.
+
+y ist ein Zustand der Aktionenfolge x (y ist Vergangenheit von x), wenn y ≤\_{pre} x und \#\_{y} ∈ N₀.
+
+### 2.3. Faire Mischung
+x ∈ (A ∪ B)^{∞} heißt eine *faire* Mischung (engl. fair merge) von y ∈ A^{∞} und z ∈ B^{∞}, wenn gilt
+
+	π_{A}(x) = y und π_{B}(x) = z.
+
+Bemerkung: „fair“ weil weder y noch z zu kurz kommen.  
+Bemerkung: Statt „faire Mischung“ sagt man auch „Verschränkung“ oder „shuffle“ (bei Zeichenreihen).
+
+Beispiel:  
+Sei y = (0, 1)^{∞} = (0, 1, 0, 1, …)  
+und z = (2, 3)^{∞} = (2, 3, 2, 3, …)  
+mit A = {0, 1} und B = {2, 3}
+
+Dann ist
+
+	x₁ := (0, 2, 1, 3, 0, 2, 1, 3, …) eine faire Mischung.
+	      (0,    1,    0,    1,    …) = y = π_{A}(x)
+	      (   2,    3,    2,    3, …) = z = π_{B}(x)
+
+Spezialfall x₁ heißt auch „perfect shuffle“.  
+Aber auch
+
+	x₂ := (2, 0, 1, 3, 2, 0, 1, 3, …) ist eine faire Mischung.
+	      (   0, 1,       0, 1,    …)
+	      (2,       3, 2,       3, …)
+
+x muss nicht periodisch sein oder y und z mit gleicher Geschwindigkeit behandeln.
+
 ## Seminare
 ### Aufgabe 1:
 Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt werden. Jeder Thread *i* soll auf dem Bildschirm ausgeben „Hello World from Thread *i*“.
@@ -696,3 +824,21 @@ Definition einer anonymen Funktion (Funktion ohne Namen)
 		z <- newIORef 0
 		forM_ [1..10000]
 			(\k -> forkIO (inc z))
+
+[^1]:	Endliche Folgen
+
+[^2]:	Unendliche Folgen
+
+[^3]:	Leere Aktionenfolge (= Aktionenfolge der Länge 0)
+
+[^4]:	y₀ \<\_{pre} x  
+	π\_{B}(y₀) = ε
+
+[^5]:	y₁ \<\_{pre} x  
+	π\_{B}(y₁) = (a)
+
+[^6]:	π\_{B}(y₂) = (a, b)
+
+[^7]:	π\_{B}(y₃) = (a, b)
+
+[^8]:	π\_{B}(y₄) = (a, b, a)
