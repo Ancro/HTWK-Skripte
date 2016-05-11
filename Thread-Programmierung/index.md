@@ -474,6 +474,122 @@ Aber auch
 
 x muss nicht periodisch sein oder y und z mit gleicher Geschwindigkeit behandeln.
 
+### 2.4 Sicherheits- und Liveness-Eigenschaften
+**Spezifikation** := Beschreibung der gewünschten Eigenschaften des Systems aus Anwendersicht
+**Verifikation** := Nachweis, dass das System seine Spezifikation erfüllt
+
+Spezifikation eines sequentiellen Programms f: z → z, wobei z die Menge aller Programmzustände sei:
+
+	pre_f(z) ⇒ post_f(f(z))
+	z := alter Zustand
+	f(z) := neuer Zustand
+	pre_f: Z → B: Vorbedingung
+	post_f: Z → B: Nachbedingung
+
+![](Prozeduraufruf.jpeg)
+
+Problem bei Nebeneinander-Ablauf:
+
+	               ↙ Wie verhält sich das System hier?
+	––––––|––––––––-|––––––
+	       --- f |--|
+	       ––––––|––––––––-|––––––
+	              --- g ---
+
+Prozedur-Ausführungen können sich überlappen! Die Ausführung von f und die Ausführung von g können sich über gemeinsame Objekte gegenseitig beeinflussen!
+
+Fazit: Das Verhalten einer Prozedur f ist durch pre\_{f} und post\_{f} nicht mehr genau genug beschreibbar.
+
+	    Aktionen
+	 ↙   ↓   ↓   ↘
+	–|–––|–––|–––|–
+	↑  ↑   ↑   ↑  ↑
+	Zusicherungenüber die Zustände
+
+Vereinfachungsmöglichkeiten:
+
+- Aktionen, die keine gemeinsamen Objekte betreffen, können zusammengefasst werden zu einer Aktion
+- Kritische Bereiche können zusammengefasst werden zu einer Aktion
+
+**Sicherheitseigenschaft (auch Konsistenz, Invariante, engl. safety property)** := Eigenschaft, die für jeden Zustand gelten soll, und die sich nur auf vergangene Zustände bezieht.
+
+**Liveness-Eigenschaft (auch: Fortschritt, engl. liveness property)** := alle übrigen Eigenschaften von Abläufen
+
+Grund für die Unterscheidung:
+
+1. Sicherheitseigenschaften sind einfach zu beweisen.
+2. Die meisten Eigenschaften sind Sicherheitseigenschaften.
+
+Intuitiv:  
+Eine Sicherheitseigenschaft garantiert, dass nichts unerwünschtes geschieht („Verbot“). Eine Liveness-Eigenschaft garantiert, dass schließlich etwas Erwünschtes geschieht („Versprechen“). Ein Thread, der nur wartet, erfüllt alle Sicherheitseigenschaften. „Wer schläft, sündigt nicht.“
+
+Bemerkung:  
+Zu sequentiellen Programmen ist partielle Korrektheit eine Sicherheitseigenschaft und Termination eine Liveness-Eigenschaft.
+
+Beweismethode für eine Sicherheitseigenschaft „Für jeden Zustand gilt S“.
+
+1. S gilt für den Startzustand.
+2. S bleibt bei jedem Zustandsübergang erhalten, das heißt, wenn S im alten Zustand gilt, dann auch im neuen Zustand.
+
+Variante:
+
+1. S gilt nach Initialisierung.
+2. S bleibt außerhalb von kritischen Bereichen erhalten.
+3. Wenn S beim Betreten eines kritischen Bereiches gilt, dann auch beim Verlassen.
+
+Sperren sollen folgende Eigenschaften erfüllen:
+
+1. **Gegenseitiger Ausschluss:**  Die kritischen Bereiche zweier Threads überlagern sich nicht.  
+	Sicherheitseigenschaft: „In jedem Zustand ist verboten, dass zwei Threads im kritischen Bereich sind.“
+2. **Verklemmungsfreiheit:** Wenn ein Thread die Sperre erwerben möchte, dann gibt es einen Thread, der die Sperre bekommt.  
+	Liveness-Eigenschaft: „Wenn die Sperre zugeteilt werden soll, wird sie schließlich zugeteilt.“
+3. **Fairness (auch: kein Verhungern):**  
+	Jeder Thread, der eine Sperre erwerben möchte, bekommt sie schließlich auch. Liveness-Eigenschaft.
+
+Es gilt: Aus Fairness folgt Verklemmungsfreiheit. Bedingungen für Prozeduraufrufe im Zusammenhang mit nebeneinander laufenden Threads:
+
+1. **Bounden wait-free:**  
+	Jeder Prozeduraufruf terminiert nach einer beschränkten Anzahl von Schritten.
+2. **Wait-free:**  
+	Jeder Prozessaufruf terminiert, das heißt er bleibt nicht in einer Warteschleife hängen.
+3. **Lock-free:**  
+	Unendlich viele Aufrufe terminieren.
+
+### Modellierung:
+Ausdrucksformen für Sicherheits- und Liveness-Eigenschaften:
+
+- Formale Sprachen, insbesondere reguläre Ausdrücke
+- Prozessalgebra
+- Temporale Logik: linear oder verzweigend
+- Prädikatenlogik mit Abläufen als Objekten
+
+**Beispiel:** Modellierung von Sperren.  
+Aktionen:
+
+- antᵢ: Thread i beantragt die Sperre
+- belᵢ: Thread i belegt die Sperre
+- frᵢ: Thread i gibt die Sperre wieder frei (verlässt den kritischen Bereich)
+
+![](Modellierung%20von%20Sperren.jpeg)
+
+	Bel := {belᵢ | i ∈ I} (I ist die Menge der Threads)
+Die Sperre wird belegt.
+
+	Fr := {frᵢ | i ∈ I}
+Die Sperre wird freigegeben.
+
+Gegenseitiger Auschluss:
+
+1. Mit regulären Ausdrücken  
+	Für jeden Ablauf x gilt: Für jedes endliche Anfangsstück y von x gilt: Die Projektion von y auf die Aktionsmenge Bel ∪ Fr ist in der Sprache (Bel Fr)\* (Bel + ε) = PRE[^9]((Bel Fr)\*)
+		Sei Ant := {antᵢ | i ∈ I} und A := Ant ∪ Bel ∪ Fr.
+	Dann kann man gegenseitigen Ausschluss als Formel angeben:  
+	∀ x ∈ A^{∞}: ∀ y ≤\_{pre} x:  
+	\#\_{y} \< ∞ ⇒ π\_{Bel ∪ Fr(y)} ∈ PRE((Bel Fr)\*)  
+	Ausgeschlossen ist z.B. der Ablauf „bel₁ bel₁ fr₂“  
+	Präfix-Abschluss ist definiert durch  
+	PRE(x) = {y ∈ A\* | y ≤\_{pre} X}
+
 ## Seminare
 ### Aufgabe 1:
 Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt werden. Jeder Thread *i* soll auf dem Bildschirm ausgeben „Hello World from Thread *i*“.
@@ -842,3 +958,5 @@ Definition einer anonymen Funktion (Funktion ohne Namen)
 [^7]:	π\_{B}(y₃) = (a, b)
 
 [^8]:	π\_{B}(y₄) = (a, b, a)
+
+[^9]:	„Präfix-Abschluss“
