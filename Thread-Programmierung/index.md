@@ -739,6 +739,8 @@ Hauptprogramm (HP):
 
 ![](Kausalitaet.jpg)
 
+—\> Programm-Reihenfolge  
+--\> Reihenfolge erzwungen durch Signal
 
 ![](Petri-Netz.jpg)
 
