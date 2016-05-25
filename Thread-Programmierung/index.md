@@ -555,7 +555,7 @@ Es gilt: Aus Fairness folgt Verklemmungsfreiheit. Bedingungen für Prozeduraufru
 3. **Lock-free:**  
 	Unendlich viele Aufrufe terminieren.
 
-### Modellierung:
+### 2.5 Modellierung:
 Ausdrucksformen für Sicherheits- und Liveness-Eigenschaften:
 
 - Formale Sprachen, insbesondere reguläre Ausdrücke
@@ -589,6 +589,235 @@ Gegenseitiger Auschluss:
 	Ausgeschlossen ist z.B. der Ablauf „bel₁ bel₁ fr₂“  
 	Präfix-Abschluss ist definiert durch  
 	PRE(x) = {y ∈ A\* | y ≤\_{pre} X}
+
+Formel für gegenseitigen Ausschluss kompakter:  
+π\_{Bel ∪ Fr}(PRE(x)) ⊆ PRE((Bel Fr)\*)  
+Zugelassen ist zum Beispiel der Ablauf bel₁ fr₂ ant₁.  
+Ausgeschlossen ist zum Beispiel bel₁ bel₁ fr₂.  
+Falls y ≤\_{pre} x und x ∈ X, dann y ∈ PRE(X).  
+x ⊆ A\* ist *abgeschlossen unter Präfix*, falls PRE(x) ⊆ x. Es gilt: PRE(X) ist abgeschlossen unter Präfixen.
+
+Gegenseitiger Ausschluss mit Formeln der Prädikatenlogik:  
+∀ y ∈ PRE(x) ∩ A\* : 0 ≤ \#\_{Bel} y - \#\_{Fr} y ≤ 1
+
+	#_{Bel} y - #_{Fr} y | Bedeutung
+	––––––––––––––––––––––––––––––––
+	          0          |   frei
+	          1          |  belegt
+
+∀ i ∈ N: Belⁱ\_{x} ≤ Frⁱ\_{x} ≤ Belⁱ⁺¹\_{x}  
+∀ k, l ∈ N. frᵏ\_{i x} \< belˡ\_{j x} ∨ frˡ\_{j x} \< belᵏ\_{i x}
+
+![](Zustandsautomat.jpg)
+
+#### Lineare Temporale Logik
+Hier: Lineare Temporale **Aussagen**logik.  
+Syntax: Formeln sind aufgebaut mit
+
+- true, false
+- Variablen
+- Verknüpfungen ∧, ∨, ¬ (weitere Verknüpfungen können damit definiert werden, z.B. ⇒, ⇔, ⊗. Endliche Quantoren
+	![](Ablauf.jpg)
+	mit M endlich.)
+- temporale Operatoren
+	-  ⃝
+		- „next“
+		- „im nächsten Zustand gilt“
+	-  ⃞
+		- „always“
+		- „in allen zukünftigen Zuständen gilt“
+	-  ⃟
+		- „eventually“
+		- „in mindestens einem zukünftigen Zustand gilt“
+
+Beispiel: „Wer A sagt, muss auch B sagen.“ ⃞ (A ⇒  ⃟ B)
+
+„Never change a running system.“ ⃞ (R ⇒  ⃞ R)  
+gleichwertig:  ⃞ (R ⇒  ⃝ R)
+
+Semantik:
+
+- 𝜎 sei ein serieller Ablauf
+- j sei eine natürliche Zahl
+- p sein eine temporal-logische Formel
+
+(𝜎, j) ⊨ p  
+„Formel p gilt an Position j des Ablaufs 𝜎.“  
+Das wird rekursiv definiert durch:  
+(𝜎, j) ⊨ p ∧ q : ⇔ (𝜎, j) ⊨ q  
+usw.
+
+(𝜎, j) ⊨  ⃝ p : ⇔ (𝜎, j + 1) ⊨ p  
+(𝜎, j) ⊨  ⃞ p : ⇔ ∀ k ≥ j: (𝜎, k) ⊨ p
+(𝜎, j) ⊨  ⃟ p : ⇔ ∃ k ≥ j: (𝜎, k) ⊨ p
+
+Gegenseitiger Ausschluss mit temporal-logischen Formeln:  
+Beispiel:  
+z\_{x} : ⇔ 0 ≤ \#\_{Bel} x - \#\_{Fr} x ≤ 1  
+ ⃞ z
+
+Kein Verhungern:  
+beant\_{i x} : ⇔ \#\_{antᵢ} x \> \#\_{belᵢ} x  
+„Thread i hat die Sperre beantragt, aber noch nicht belegt.“
+
+a\_{x} soll bedeuten:  
+Aktion a ist im Zustand x soeben ausgeführt worden.
+![](#)
+Semantik dazu:  
+(𝜎, j) ⊨ a : ⇔ 𝜎(j) = a
+
+⃞ (beantᵢ ⇒  ⃟ belᵢ)
+
+## 3. Synchronisation
+### 3.1. Signale
+**Synchronisation (hier)** := dafür sorgen, dass gewisse Abläufe ausgeschlossen sind.  
+Auch: Koordination.  
+**Signal (auch: Handshake, Meldung, engl. notification)** := Hinweis an einen anderen Thread, dass er weitermachen kann.
+
+Analogie:
+
+- Startschuss beim Wettlauf
+- Staffel beim Staffellauf
+- Anschlusszug mus warten
+- Becher vor Kaffeezulauf
+
+Ein Signal kann durch eine Sperre implementiert werden:
+
+- signalisieren (auch: melden) = freigeben
+- warten = belegen
+
+Das Signal soll garantieren, dass eine gewisse Reihenfolge eingehalten wird.
+
+p₁: S₁;  
+freigeben(l);
+
+p₂: belegen(l);  
+S₂;
+
+![](Reihenfolge.jpg)
+
+l muss freigegeben worden sein, bevor es wieder belegt werden kann, also findet S₁ vor S₂ statt:
+
+Durch die Verwendung von Signal wird schränkt man die Menge der Abläufe ein. Nachteil: weniger Parallelität.  
+Extremfall: Nur noch eine Reihenfolge möglich, der Abauf wird seriell. Abgesehen vom Koordinationsaufwand zu einem seriellen Programm gleichwertig.
+
+### 3.2. Beispiel: Erzeuger/Verbraucher-Problem, 1. Version
+Erzeuger und Verbraucher sind Threads. Der Erzeuger erzeugt Datenblöcke. Der Verbraucher holt die Datenblöcke ab und verarbeitet sie.  
+Die erzeugten aber noch nicht verbrauchten Datenblöcke werden in einem Puffer (:= Warteschlange) zwischengespeichert.
+
+##### 1. Version:
+1 Erzeuger  
+1 Verbraucher  
+Puffer für 1 Datenblock
+	Thread erz:
+		Wiederhole
+			herstellen(datenblock);
+			einreihen(puffer, datenblock);
+	
+	Thread verb:
+		Wiederhole
+			abholen(puffer, datenblock);
+			verarbeiten(datenblock);
+
+Prozedur `einreihen(puffer, datenblock)`:  
+① `belegen(leer);`  
+② `kopieren(datenblock; puffer);` (kopiert Datenblock in Puffer)  
+③ `freigeben(voll);`
+
+Prozedur `abholen(puffer, datenblock)`:  
+④ `belegen(voll);`  
+⑤ `kopieren(puffer, datenblock);` (kopiert Puffer in Datenblock)  
+⑥ `freigeben(leer);`
+
+Hauptprogramm (HP):
+
+	Sperre voll anlegen; // als belegt
+	Sperre leer anlegen; // als belegt
+	Threads erz und verb anlegen und laufen lassen;
+
+⓪ `freigeben(leer);`
+
+![](Kausalitaet.jpg)
+
+
+![](Petri-Netz.jpg)
+
+![](Kausalitaetsgraph.jpg)![](Elementare%20Ereignisstruktur.jpg)
+
+Ereignis e₁ *ist kausal für* Ereignis e₂: ⇔  
+In jedem Ablauf gilt: Wenn e₂ stattfindet, dann hat e₁ vorher stattgefunden.  
+Mit anderen Worten: e₂ kann erst stattfinden, wenn e₁ vorher stattgefunden hat.
+
+![](Signaldiagramm.jpg)
+
+Verwendung der Sperren voll und leer bewirkt hier:
+
+1. ② und ⑤ werden als kritische Bereiche behandelt.
+2. ② und ⑤ werden nur abwechselnd ausgeführt.
+
+Zu 1.: Gegenseitiger Ausschluss gilt. ¬leer.frei ∨ ¬voll.frei ist Invariante.  
+Zu 2.: Folgt aus Programmreihenfolge und 1.
+
+### 3.3. Semaphore
+**Semaphor** := Datenstruktur l mit Zustand l.frei ∈ N₀ und Operationen „belegen“ und „freigeben“.
+
+Sperre ist Spezialfall mit l.frei ∈ {0, 1}.
+
+belegen(l): Wendet bis l.frei \> 0 und setzt dann l.frei auf l.frei - 1.  
+freigeben)l): Setzt l.frei auf l.frei + 1.
+
+Zweck: l.frei verschiedene Kopien eines Betriebsmittels werden verwaltet.
+
+Zusammenhang zu Klammerausdrücken:
+
+- „(“ bedeutet „freigeben(l)“
+- „)“ bedeutet „belegen(l)“
+- l.frei = Anzahl der noch offenen Klammern
+
+![](Bikini.jpg)
+
+### 3.4. Erzeuger/Verbraucher-Problem, 2. Version
+2. Version: 1 Erzeuger, 1 Verbraucher, N Datenblöcke mit N \> 0 beliebig.
+
+Threads erz und verb wie in Version 1.
+	Prozedur einreihen(puffer, datenblock):
+		belegen(nichtvoll); // *I' gilt*
+		stock(puffer, datenblock);
+		// ↑ Anfügen des Datenblocks am Puffer hinten
+		freigeben(nichtleer); // *I gilt*
+
+	Prozedur abholen(puffer, datenblock):
+		belegen(nichtleer); // *I' gilt*
+		datenblock := top(puffer);
+		// ↑ liefert vordersten Datenblock des Puffers
+		pop(puffer);
+		freigeben(nichtvoll); *I gilt*
+
+Hauptprogramm:
+
+- Leeren Puffer anlegen
+- Semaphore nichtvoll und nichtleer erzeugen mit nichtvoll.frei = 0 und nichtleer.frei = 0.
+- Threads erz und verb anlegen und laufen lassen.
+		freigebenᴺ(nichtvoll);
+		// nichtvoll wird N-mal freigegeben, *I gilt*
+
+Invariante *I*: 0 ≤ nichtvoll.frei ≤ N ∧ nichtleer.frei + nichtvoll.frei ≤ *N*  
+Invariante *I'*: 0 ≤ nichtvoll.frei ≤ N ∧ nichtleer.frei + nichtvoll.frei ≤ *N - 1*  
+Invariante *I"*: 0 ≤ nichtvoll.frei ≤ N ∧ nichtleer.frei + nichtvoll.frei ≤ *N - 2*
+
+*I" gilt, wenn beide Threads belegen aufgerufen haben, aber noch nicht freigeben aufgerufen haben.*
+
+### 3.5. Bedingte Kritische Bereiche
+Ein kritischer Bereich soll nur betreten werden, wenn eine gewisse Bedingung B an die gemeinsame Variable gilt. Wie implementiert man das?
+
+1. B vor dem Betreten des kritischen Bereiches überprüfen.  
+	Problem: B kann beim Betreten des kritischen Bereiches bereits wieder verletzt sein.
+2. B im kritischen Bereich überprüfen.  
+	Problem: Solange B nicht gilt, soll der Thread warten.  
+	Weil er sich im kritischen Bereich befindet, können andere Threads die gemeinsame Variable nicht ändern, und damit den Wert von B.
+
+Mit kritischen Bereichen kann man das Problem nicht lösen.  
+Abhilfe: neues Konstrukt.
 
 ## Seminare
 ### Aufgabe 1:
