@@ -1172,6 +1172,103 @@ Definition einer anonymen Funktion (Funktion ohne Namen)
 		forM_ [1..10000]
 			(\k -> forkIO (inc z))
 
+### Aufgabe:
+1. Welche Eigenschaft eines Systems von Threads wird ausgedrückt mit der Formel:  
+	π\_{s}(x) ∈ PRE((antᵢ belᵢ frᵢ)^{∞})  
+	wobei s := {antᵢ belᵢ frᵢ}.
+2. Handelt es sich dabei um eine Sicherheitseigenschaft oder eine Liveness-Eigenschaft?
+3. Erfüllt der Ablauf x = antᵢ belᵢ die Formel?
+4. Geben Sie einen Beispiel-Ablauf mit 2 Threads an, der die Formel für i = 1 und für i = 2 erfüllt, aber gegenseitigen Auschluss verletzt.
+
+##### Lösung
+1. Programm-Reihenfolge für Thread i.
+2. Sicherheitseigenschaft
+3. Ja, weil antᵢ belᵢ ≤\_{pre} (antᵢ belᵢ frᵢ)^{∞}.
+4. Beispiel: x = ant₁ bel₁ ant₂ bel₂ (eine Faire Mischung von ant₁ bel₁ und ant₂ bel₂).
+
+Frage: Erfüllt bel₄ ant₅ die Formel?
+
+Für i = 4:  
+π\_{s}(x) = bel₄ ∉ PRE((ant₄ bel₄ fr₄)^{∞})  
+Formel ist nicht erfüllt.
+
+Für i = 5:
+π\_{s}(x) = ant₅ ∉ PRE((ant₅ bel₅ fr₅)^{∞})  
+Formel ist erfüllt.
+
+Für alle i ∉ {4, 5} gilt:  
+π\_{s}(x) = ε ∈ PRE((antᵢ belᵢ frᵢ)^{∞})  
+Formel ist erfüllt.
+
+### Aufgabe:
+Beweisen Sie, dass für alle x ∈ A^{∞}  
+(1) 0 ≤ \#\_{Bel}y - \#\_{Fr}y ≤ 1 für alle y ≤\_{pre}x mit y ∈ A\*  
+äquivalent ist zu  
+(2) ∀ i ∈ N: Belⁱ\_{x} ≤ Frⁱ\_{x} ≤ Belⁱ⁺¹\_{x}
+##### Lösung:
+
+(1) ⇒ (2):  
+Sei i ∈ N beliebig. Beweis mit Widerspruch. Annahme: Frⁱ\_{x} \< Belⁱ\_{x}.
+
+	⎛#_{Fr}y < i⎞ ⎛#_{Fr}y ≥ i, #_{Bel}y < i⎞  Damit gilt (1) nicht.
+	–––––––––––––+–––––––––––––––––––––––––––+–––––––––––––
+	          Frⁱ_{x}                     Belⁱ_{x}
+
+Widerspruch!
+
+Annahme: Belⁱ⁺¹\_{x} \< Frⁱ\_{x}.
+
+	        ⎛#_{Bel}< ≥ i + 1, #_{Fr} y < i⎞
+	–––––––+––––––––––––––––––––––––––––––––+–––––––––––––
+	   Belⁱ⁺¹_{x}                        Frⁱ_{x}
+
+Damit gilt (1) nicht, Widerspruch!
+
+(2) ⇒ (1):
+
+	     ⎛#_{Bel}y ≥ i, ⎞
+	     |damit #_{Bel}y|
+	     |- #_{Fr}y ≥ 1,| ⎛  #_{Fr}y ≥ i,  ⎞
+	     |es gilt sogar | |#_{Bel}y ≤ i + 1|
+	     |  #_{Bel}y -  | |   #_{Bel}y -   |
+	     | #_{Fr}y = 1. | |  #_{Fr}y ≤ 0   |
+	––––+––––––––––––––––+–––––––––––––––––+––––
+	Belⁱ_{x}         Frⁱ_{x}           Belⁱ⁺¹_{x}
+	⎝______________________________________⎠
+	             #_{Bel}y ≤ i + 1
+	                ⎛   ①   ⎞⎛   ②   ⎞
+	–––––+–––––––––+–––––––––+–––––––––+–––––––––+–––––
+	 Frⁱ⁻¹_{x}  Belⁱ_{x}  Frⁱ_{x}  Brⁱ⁺¹_{x}  Frⁱ⁺¹_{x}
+	⎝(2) für i - 1⎠ ⎝    (2) für i    ⎠ ⎝(2) für i + 1⎠
+
+Für Zustände im Bereich ① gilt:
+	#_{Bel}y ≥ i       } ⇒
+	#_{Bel}y < i + 1   } #_{Bel} y ≥ i
+	#_{Fr}y < i        } ⇒
+	#_{Fr}y ≥ i - 1    } #_{Fr}y = i - 1
+
+Damit \#\_{Bel}y - \#\_{Fr}y = 1; das erfüllt (1).
+
+Frage: Gilt (1) auch für y im Bereich ⓪?
+
+	⎛  ⓪  ⎞ ⎛    ⓪'   ⎞
+	⊢––––––+––––––––––––+–––
+	    Bel¹_{x}      Fr¹_{x}
+
+Zu Temporaler Logik:  
+Was bedeuten folgende Formeln?
+
+1.  ⃞p: p gilt ab jetzt immer
+2.  ⃞ ⃟p: p gilt unendlich oft; p gilt immer wieder
+3.  ⃟ ⃞p: ab einer gewissen Stelle gilt p immer; P gilt fast immer (:= immer bis auf endlich viele Ausnahmen)
+
+Gesetze der Linearen Temporalen Logik:
+
+1.  ⃞p ⇒ p (Wenn p immer gilt, dann gilt p jetzt)
+2.  ⃝(¬p) ⇔ ¬ ⃝p
+3.  ⃝(p ⇒ q) ⋀  ⃝p ⇒  ⃝q
+4. p ⋀  ⃞(p ⇒  ⃝p) ⇒  ⃞p
+
 [^1]:	Endliche Folgen
 
 [^2]:	Unendliche Folgen
