@@ -821,6 +821,92 @@ Ein kritischer Bereich soll nur betreten werden, wenn eine gewisse Bedingung B a
 Mit kritischen Bereichen kann man das Problem nicht lösen.  
 Abhilfe: neues Konstrukt.
 
+Warteanweisung:
+
+	warte auf B;
+
+B := Bedingung an gemeinsame Variable (bewacht von Sperre l)
+
+Beispiel-Implementierung:
+
+	Solange ¬B wiederhole
+		freigeben(l);
+		belegen(l);
+
+Warteanweisung steht im kritischen Bereich:
+
+	kritisch l {
+		⋮
+		warte auf B;
+		⋮
+	}
+
+Implementierung bedingter kritischer Bereiche in Java: „Bedingungsvariable“
+
+Typ Condition  
+Bedingungsvariable wird einer Sperre zugeordnet.  
+Z.B.
+
+	Lock l = new ReentrantLock();
+	Condition c = new Condition(l); // <- Bedingte Variable c ist der Sperre l zugeordnet
+
+Werteanweisung: `wait(c);`  
+Signalisieren: `signal(c);` oder `signalAll(c);`  
+Empfohlen ist `signalAll(c)`  
+Warteanweisung soll implementiert werde durch:
+
+	while (¬B) { // Bedingte Variable c „vertritt“ die Bedingung B.
+		wait(c); // Signal an c bedeutet:
+	}            // „Bedingung B könnte erfüllt sein“
+
+Keine Garantie!
+
+### 3.6. Erzeuger/Verbraucher-Problem, 3. Version
+Beliebig viele Erzeuger, beliebig viele Verbraucher, Puffer mit N Datenblöcken.
+
+	einreihen(puffer, datenblock):
+		kritisch l {
+			warte auf länge(puffer) < N;
+			stock(puffer, datenblock);
+		}
+	
+	abholen(puffer, datenblock):
+		kritisch l {
+			warte auf länge(puffer) > 0;
+			datenblock := top(puffer);
+			pop(puffer);
+		}
+	
+	// länge(puffer) liefert die Anzahl der Datenblöcke,
+	// die sich gerade im Puffer befinden
+	
+	Hauptprogramm:
+		Erzeugen des Puffers; Puffer ist leer.
+		Erzeugen der Sperre l für den Puffer.
+		Erzeugen der Threads und Starten der Threads.
+
+	// Version mit Bedingungsvariablen:
+	einreihen(puffer, datenblock):
+		belegen(l);
+		solange länge(puffer) < N wiederhole:
+			wait(nichtvoll);
+		stock(puffer, datenblock);
+		signalAll(nichtleer);
+		falls länge(puffer) < N, dann:
+			signalAll(nichtvoll);
+		freigeben(l);
+	
+	abholen(puffer, datenblock):
+		belegen(l);
+		solange länge(puffer) > 0 wiederhole:
+			wait(nichtleer);
+		datenblock := top(puffer);
+		pop(puffer);
+		signalAll(nichtvoll);
+		falls länge(puffer) > 0, dann:
+			signalAll(nichtleer);
+		freigeben(l);
+
 ## Seminare
 ### Aufgabe 1:
 Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt werden. Jeder Thread *i* soll auf dem Bildschirm ausgeben „Hello World from Thread *i*“.
