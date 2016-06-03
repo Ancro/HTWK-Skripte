@@ -1355,6 +1355,36 @@ Gesetze der Linearen Temporalen Logik:
 3.  ⃝(p ⇒ q) ⋀  ⃝p ⇒  ⃝q
 4. p ⋀  ⃞(p ⇒  ⃝p) ⇒  ⃞p
 
+### Aufgabe:
+Programmieren Sie das Erzeuger/Verbraucher-Problem, Version 3 in Java. Um bedingte kritische Bereiche zu implementieren, verwenden sie folgendes Muster:
+
+	Lock l = new ReentrantLock();
+	Condition c = l.newCondition();
+	⋮
+	l.lock();
+	try {
+		⋮
+		while (¬B) {	// Sichergehen, dass B tatsächlich gilt.
+			c.await();	// Warten auf das Signal
+		}
+		⋮
+	}
+	catch (InterruptedException e) {
+		e.printStrackTrace();
+	}
+	finally {
+		l.unlock();
+	}
+	
+	c.signal();		// signalisieren
+	c.signalAll();	// signalisieren an alle Threads
+
+Puffer:  
+`java.util.LinkedList` (Implementierung)  
+`java.util.Queue` (Interface)  
+Puffer anlegen:  
+`static LinkedList<Integer> buffer;`
+
 [^1]:	Endliche Folgen
 
 [^2]:	Unendliche Folgen
