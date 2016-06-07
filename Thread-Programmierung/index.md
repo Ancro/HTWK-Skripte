@@ -474,7 +474,7 @@ Aber auch
 
 x muss nicht periodisch sein oder y und z mit gleicher Geschwindigkeit behandeln.
 
-### 2.4 Sicherheits- und Liveness-Eigenschaften
+### 2.4. Sicherheits- und Liveness-Eigenschaften
 **Spezifikation** := Beschreibung der gewünschten Eigenschaften des Systems aus Anwendersicht
 **Verifikation** := Nachweis, dass das System seine Spezifikation erfüllt
 
@@ -555,7 +555,7 @@ Es gilt: Aus Fairness folgt Verklemmungsfreiheit. Bedingungen für Prozeduraufru
 3. **Lock-free:**  
 	Unendlich viele Aufrufe terminieren.
 
-### 2.5 Modellierung:
+### 2.5. Modellierung:
 Ausdrucksformen für Sicherheits- und Liveness-Eigenschaften:
 
 - Formale Sprachen, insbesondere reguläre Ausdrücke
@@ -884,7 +884,7 @@ Beliebig viele Erzeuger, beliebig viele Verbraucher, Puffer mit N Datenblöcken.
 		Erzeugen des Puffers; Puffer ist leer.
 		Erzeugen der Sperre l für den Puffer.
 		Erzeugen der Threads und Starten der Threads.
-
+	
 	// Version mit Bedingungsvariablen:
 	einreihen(puffer, datenblock):
 		belegen(l);
@@ -907,6 +907,162 @@ Beliebig viele Erzeuger, beliebig viele Verbraucher, Puffer mit N Datenblöcken.
 			signalAll(nichtleer);
 		freigeben(l);
 
+### 3.7. Wiederbetretbare Sperre
+**Wiederbetretbare Sperre (engl. reentrant lock)** := Ein Thread darf die Sperre mehrfach erwerben  
+Zweck: Innerhalb eines kritischen Bereiches darf man eine Prozedur aufrufen, die wieder einen kritischen Bereich für dieselbe gemeinsame Variable enthält. Bequemere Programmierung.  
+Die innereren kritischen Bereiche sollen dazu wirkungslos sein.
+
+###### Beispiel:
+	        belegen(l);
+	¯¯¯¯¯¯¯ S1;
+	|krit.  belegen(l);		↖
+	|Be-    S2;					wirkungslos
+	|reich  freigeben(l);	↙
+	_______ S3;
+	        freigeben(l);
+
+Bemerkung: Wiederbetretbare Sperren und Semaphore sind inkompatibel zueinander.
+
+### 3.8. Leser/Schreiber-Problem
+Mehrere Threads greifen lesend oder schreibend auf eine gemeinsame Variable zu (Courtois und andere 1971).  
+Mehrere Threads können lesend auf die gemeinsame Variable zugreifen, ohne sich gegenseitig zu stören.
+
+##### Lese/Schreib-Konflikt:
+Eine gemeinsame Variable darf nicht gleichzeitig gelesen und geschrieben werden.
+
+##### Schreib/Schreib-Konflikt:
+Eine gemeinsame Variable darf nicht von mehreren Threads gleichzeitig geschrieben werden.
+
+2 Varianten:
+
+1. Ein Leser muss nur dann warten, wenn gerade ein Schreiber aktiv ist: Leser haben Vorrang.
+2. Ein Schreiber muss nur auf Leser und Schreiber warten, die gerade aktiv sind: Schreiber haben Vorrang.
+
+Wenn 1 und 2 abwechselnd verwendet werden, bekommt man Fairness.
+
+```
+	         |       Leser
+	–––––––––+––––––––––––––––––––––	i. O.:	„in Ordnung“
+	 Schrei- |     |   0   |  > 1  |
+	 ber     |––––––––––––––––––––––	LS:	Lese/Schreib-Konflikt
+	         |  0  | i. O. | i. O.
+	         |  1  | i. O. |  LS		SS:	Schreib/Schreib-Konflikt
+	         | ≥ 2 |  SS   | LS + SS
+```
+
+## 4. Implementierung
+### 4.1. Atomare Maschinenbefehle
+Wie werden Sperren implementiert?
+
+###### Naiver Versuch:
+	belegen(l):
+		Solange ¬l.frei gilt, wiederhole:
+			Warte einen augenblick;
+		Setze l.frei = false.
+
+Beispielablauf für 2 Threads, die versuchen, belegen(l) aufzurufen. Sei zu Beginn l.frei = true.
+
+```
+	  P₁  P₂  |  l.frei
+	––––––––––+–––––––––
+	  1       |
+	      1   |
+	  3       |
+	      3   |
+```
+
+Beide Threads sind im kritischen Bereich!
+⇒ 1, 2, 3 muss selber wieder ein kritischer Bereich sein.
+
+Man benötigt einen speziellen Maschinenbefehl, z.B.
+
+	getAndSet(c, b, v):
+		b := c;
+		c := v;
+
+Zwei Ausführungen dieses Maschienenbefehls müssen immer unter gegenseitigem Ausschluss stattfinden, das heißt der Maschinenbefehl muss atomar sein. Die Hardware muss dafür sorgen („Arbitisierung“).
+
+Implementierung mit `getAndSet`:
+
+	belegen(l):
+		boolean b;
+		getAndSet(l.frei, b, false);
+		Solange ¬b wiederhole:
+			Warte einen Augenblick;
+			getAndSet(l.frei, b, false);
+	
+	freigeben(l):
+		boolean b;
+		getAndSet(l.frei, b, true);
+
+Alternativen:
+
+	getAndInc(c, b):
+		b := c;
+		c := c + 1;
+	
+	getAndDec(c, b):
+		b := c;
+		c := c - 1;
+	
+	compareAndSet(c, e, v, b);
+		Falls c = e, dann	}
+			c := v;			} b := Wahrheitswert
+			b := true;		} von „c = e“;
+		Sonst:				} Falls b, dann c := v;
+			b := false;		}
+
+Befehl CMPXCHG auf Intel Pentium.  
+Implementierung mit compareAndSet:
+
+	belegen(l):
+		boolean b;
+		compareAndSet(l.frei, true, false, b);
+		Solange ¬b wiederhole:
+			Warte einen Augenblick;
+			compareAndSet(l.frei, true, false, b);
+	
+	freigeben(l):
+		boolean b;
+		compareAndSet(l.frei, false, true, b);
+
+Volatile (engl. für „flüchtig“) Schlüsselwort in Java.  
+Beispiel: `volatile int x;`  
+x ist damit als gemeinsame Variable gekennzeichnet. Übliche Optimierungen des Compilers für lokale Variable sind ausgeschlossen.  
+Lese- und Schreibzugriffe auf x sind zueinander atomar (schließen sich gegenseitig aus): „atomares Register“. Die Hardware sorgt für Atomarität.
+
+### 4.2. Konsenzzahlen
+Konsensproblem:
+
+1. im Hauptprogramm:
+		init(c);
+	Gemeinsame Variable c wird initialisiert.
+2. Jeder Thread ruft höchstens ein Mal `entscheide(c, v, a)` auf. (c: gemeinsame Variable, v: Vorschlag vom Typ T, a: Variable vom Typ T)
+3. Der Aufruf entscheide(c, v, a) gibt an a einen Wert mit folgenden Eigenschaften:
+	- Einigkeit: Jeder Thread bekommt denselben Wert in a.
+	- Gültigkeit: Der Wert in a wurde von mindestens einem Thread vorgeschlagen.
+
+**n-Konsensproblem** := Konsensproblem mit n beteiligten Threads
+
+Es gilt:
+
+- Mit dem n-Konsensproblem löst man auch das k-Konsensproblem für jedes k \< n.
+- Das 1-Konsensproblem ist trivial lösbar: `a := v` implementiert `entscheide(c, v, a)`.
+
+Die Konsenszahl für eine Klasse (Sprache) K ist definiert als
+
+	{ ∞, falls K das n-Konsensproblem für alle n ∈ N löst
+	{ n, falls n ∈ N maximal sodass K das n-Konsensproblem löst
+
+##### Satz: (Herlihy, 1991)
+```
+	       Klasse K       | Konsenszahl K(K)
+	––––––––––––––––––––––+–––––––––––––––––
+	   atomare Register   |        1
+	    Warteschlangen    |        2
+	 Common-2-Operationen |        2
+	    compareAndSet     |        ∞
+```
 ## Seminare
 ### Aufgabe 1:
 Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt werden. Jeder Thread *i* soll auf dem Bildschirm ausgeben „Hello World from Thread *i*“.
