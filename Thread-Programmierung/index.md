@@ -1541,6 +1541,98 @@ Puffer:
 Puffer anlegen:  
 `static LinkedList<Integer> buffer;`
 
+### Aufgabe:
+Sei N = 3. Geben Sie in einem Diagram den zeitlichen Ablauf wieder, wenn Erzeuger & Verbraucher folgende Ereignisse nacheinander auslösen:
+
+- 3 Datenblöcke herstellen
+- 1 Datenblock verbrauchen
+- 2 Datenblöcke herstellen
+- 3 Datenblöcke verbrauchen
+- 1 Datenblöcke herstellen
+- 4 Datenblöcke verbrauchen
+
+![](Erzeuger_Verbraucher.jpg "Diagramm")
+
+### Aufgabe:
+Entwerfen Sie ein Programm mit threadsicheren Warteschleifen (das heißt einreihen und abholen finden unter gegenseitigem Ausschluss statt), dass das einfache 2-Konsensproblem löst.
+Einfaches Konsensproblem: Konsensproblem, wo jeder Thread seine eigene Thread-ID vorschlägt.
+
+#### Lösung:
+`queue` sei als globale Variable gegeben.
+
+	init():
+		Sei queue eine Warteschlange.
+		einreihen(queue, 1);
+		einreihen(queue, 2);
+	
+	entscheide(queue, i, a):	// i = Thread-ID
+		abholen(queue, status);
+		Falls status = 1, dann:
+			a := i;		// Thread i gewinnt
+		Sonst:
+			a := 3 - 1	// Rivale von Thread i gewinnt
+	
+	|   |
+	|   |
+	|___|
+	|_2_|
+	|_1_|
+
+Einigkeit:
+Sei i ∈ {1, 2} derjenige Thread, dessen abholen-Aufruf als erstes ausgeführt wird. Thread i bekommt status = 1 und damit a = i. Sein Rivale (Thread 3 - i) bekommt status = 2 und damit a = 3 - (3 - i) = i. Also gilt Einigkeit.
+
+Gültigkeit:  
+Sei i ∈ {1, 2} derjenige Thread, dessen abholen-Aufruf als erstes ausgeführt wird. Thread i bekommt status = 1 und damit a = i. Den Wert i hat er selber vorgeschlagen. Sein Rivale (Thread 3 - 1) bekommt status = 2 und a = i. Da der Rivale verloren hat (Thread i hat gewonnen), muss der Thread i einen Vorschlag gemacht haben (i wegen einfachem Konsensproblem). Also gilt Gültigkeit.
+
+### Aufgabe:
+Angenommen, zwei atomare Befehle `getAndInc` und `getAndDec` stehen zur Verfügung. Wie kann man damit Sperren implementieren?
+
+	getAndInc(c, b):				getAndDec(c, b):
+		b := c;							b := c;
+		c := c + 1;						c := c - 1;
+
+#### Lösung:
+Java-Paket: `java.util.concurrent.atomic`  
+Klasse: `AtomicInteger`
+
+	public class … extends AtomicInteger implements Lock {
+		public IntegerLock(int i) {
+			super(i);
+		}
+	}
+	
+	@override
+	public void lock() {
+		int b = this.getAndIncrement(); // (1)
+		while (b > 0) {					// (2)
+			this.getAndDecrement();		// (3)
+			b = this.getAndDecrement();	// (4)
+		}
+	}
+	
+	@override
+	public void unlock() {
+		this.getAndDecrement();			// (5)
+	}
+```
+	Ablauf für 2 Threads:   // ↙ gem. Var. vom Typ IntegerLock
+	     p₁    |     p₂     | c | Bedingung
+	–––––––-–––+––––––––––––+–––+––––––––––
+	Aktion | b | Aktion |   | 0 |
+	–––––––+–––+––––––––+–––+–––|
+	  (1)  | 0 |        |   | 1 |
+	       |   |  (1)   | 1 | 2 |
+	       |   |  (2)   |   |   | true
+	       |   |  (3)   |   | 1 |
+	       |   |  (4)   | 1 | 2 |
+	  (2)  |   |        |   |   | false
+	  (5)  |   |        |   | 1 |
+	       |   |  (2)   |   |   | true
+	       |   |  (3)   |   | 0 |
+	       |   |  (4)   | 0 | 1 |
+	       |   |  (2)   |   |   | false
+```
+
 [^1]:	Endliche Folgen
 
 [^2]:	Unendliche Folgen
