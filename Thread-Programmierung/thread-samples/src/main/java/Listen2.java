@@ -7,22 +7,22 @@ import java.util.stream.Stream;
  */
 public class Listen2 {
 
-    static int z = 0;
+	static int z = 0;
 
-    public static void main(String[] args) {
-        IntStream.range(0, 10000).boxed().map(
-                (i) -> new Thread(
-                        () -> {
-                            inc();
-                            //inc mit synchronized -> sollte 10000 ergeben
-                            //inc ohne synchonized -> sollte eigentlich keine 10000 erreichen
-                            //boxed Streams sichern dieses Verhalten aber ab
-                            System.out.println(z);
-                        }))
-                .forEach(Util.threadStartAndJoin());
-    }
+	public static void main(String[] args) {
+		IntStream.range(0, 10000).boxed().map(
+				(i) -> new Thread(
+						() -> {
+							inc();
+							//inc mit synchronized -> sollte 10000 ergeben
+							//inc ohne synchonized -> sollte eigentlich keine 10000 erreichen
+							//boxed Streams sichern dieses Verhalten aber ab
+							System.out.println(z);
+						}))
+				.forEach(Util.threadStartAndJoin());
+	}
 
-    private static void inc() {
-        z++;
-    }
+	private static void inc() {
+		z++;
+	}
 }
