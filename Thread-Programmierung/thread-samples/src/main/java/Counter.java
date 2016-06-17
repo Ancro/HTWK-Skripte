@@ -23,6 +23,14 @@ public class Counter {
     private static void testLockWithCounter(Lock lock) {
         z = 0;
         long begin = System.currentTimeMillis();
+        executeAndJoin(lock);
+        long end = System.currentTimeMillis();
+        long diff = end - begin;
+        System.out.println("counter:" + z);
+        System.out.println("time:" + diff + " ms");
+    }
+
+    private static void executeAndJoin(Lock lock) {
         List<Thread> allThreads = IntStream.range(0, 10000).boxed().map(
                 (i) -> new Thread(() -> {
                     inc(lock);
@@ -35,10 +43,6 @@ public class Counter {
                 e.printStackTrace();
             }
         });
-        long end = System.currentTimeMillis();
-        long diff = end - begin;
-        System.out.println("counter:" + z);
-        System.out.println("time:" + diff + " ms");
     }
 
     private static void inc(Lock lock) {
