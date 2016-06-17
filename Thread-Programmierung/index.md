@@ -1063,6 +1063,129 @@ Die Konsenszahl für eine Klasse (Sprache) K ist definiert als
 	 Common-2-Operationen |        2
 	    compareAndSet     |        ∞
 ```
+n-Konsens mit `compareAndSet` und `get`: (Einfaches Konsensproblem: Jeder schlägt sich selbst vor)
+
+	init(c):
+		Setze c = -1;
+	
+	entscheide(c, i, a): // i: Thread-ID des Aufrufers
+		boolean b;
+		compareAndSet(c, -1, i, b);
+		Falls b gilt, dann:		}
+			a := i;				} Genauso gut:
+		Sonst					} a := get(c);
+		a := get(c);			}
+
+Read/Modify/Write-Operation:
+
+	// c: gem. Variable mit Wert vom Typ T
+	// b: Ergebnisvariable vom Typ T
+	// f: Modifikationsfunktion f: T → T
+	rmw(c, b, f):
+		b := c;
+		c := f(c);
+
+Es gilt:
+
+	getAndSet(c, b, v) = rmw(c, b, λx.v);
+	getAndInc(c, b) = rmw(c, b, λx.x + 1);
+
+> Schar F von Funktionen von T nach T heißt *Common 2*, falls  
+> `f(g(x)) = f(x)` oder  
+> `g(f(x)) = g(x)` oder  
+> `f(g(x)) = g (f(x))`  
+> für alle f, g ∈ F, x ∈ T. (Trivial für f = g).
+
+F heißt *nicht-trivial*, falls F ≠ {id} und F ist nicht leer, das heißt F \\{id} ≠ Ø.
+
+Beispiel:
+	F = \{λx.x + 1, λx.x - 1}
+	      ⎝   s   ⎠⎝   P   ⎠
+
+Es gilt: `s(p(x)) = x = p(s(x))` für alle x ∈ Z. Also ist F Common 2. Damit Konsenszahl ≤ 2. Da F nicht-trivial, ist Konsenszahl = 2.
+
+### 4.3. Zwischenspeicher
+**Zwischenspeicher (ZSP), engl. cache)** := schneller, kleiner Speicher auf dem Prozessorchip
+
+Bemerkung: Herkunft des Begriffs „cache“: Versteck der Beute eines Einbrechers.
+
+Verwendung: Nachdem der Prozessor das erste Mal auf eine gewisse Arbeitsspeicherzelle lesend zugegriffen hat, speichert er den Wert in seinem Zwischenspeicher. Wenn er das nächste Mal lesend auf dieselbe Adresse zugreifen will, findet er das Ergebnis in seinem Zwischenspeicher („Treffer“). Er braucht dazu nicht auf den Bus zuzugreifen.  
+Um schreibend auf eine Arbeitsspeicherzelle zuzugreifen, speichert der Prozessor das Wort zunächst in seinem Zwischenspeicher. Nur wenn ein anderer Prozessor auf dieselbe Speicherzelle lesend zugreifen will, muss das Wort in den Arbeitsspeicher geschrieben werden.
+
+Vorteil des Zwischenspeichers:  
+Weniger Zugriffe auf den Arbeitsspeicher nötig, damit schneller und der Bus ist weniger belastet.  
+Der Zwischenspeicher lohnt sich, wenn im Programm häufig dicht hintereinander Zugriffe auf dieselbe Adresse vorkommen („Lokalität“).
+
+Um den Verwaltungsaufwand gering zu halten, ist der Zwischenspeicher in sogenannten *Speicherzeilen* (engl. cache lines) organisiert.  
+Sobald der Zwischenspeicher voll ist, wird es nötig, manche Zeilen *auszuwerfen* (engl. to evict), um Platz zu schaffen.
+
+**Kohärenz** := Jeder Lesezugriff auf den Zwischenspeicher liefert den zuletzt geschriebenen Wert.
+
+Kohärenz bedeutet praktisch, dass sich durch die Einführung des Zwischenspeichers nichts am Verhalten des Systems ändert.  
+Um Kohärenz zu erreichen, verwendet man ein Kohärenz-Protokoll, z.B. das MESI-Protokoll.
+
+###### MESI-Protokoll:
+Jede Speicherzelle hat einen Modus:
+- Modified: Zeile wurde verändert. Kein anderer Prozessor hat diese Zeile in seinem Zwischenspeicher.
+- Exclusive: Zeile ist unverändert. Kein anderer Prozessor hat diese Zeile in seinem Zwischenspeicher.
+- Shared: Zeile ist unverändert. Andere Prozessoren können diese Zeile in ihrem Zwischenspeicher haben.
+- Invalid: Zeile enthält keine verwertbaren Daten.[^10]
+
+Beispiel-Ablauf:  
+A, B, C seien Prozessoren,  
+M sei ein Arbeitsspeicherblock
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	E | a |    |   |    |   |    | a |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+A liest von Adresse a.
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	S | a |  S | a |    |   |    | a |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+B liest von Adresse a,  
+A antwortet.
+
+	              ↙ veränderte Zeile
+		A        B        C        M
+	  –––––    –––––    –––––    –––––
+	I | a |  M | a |    |   |    | a |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+B schreibt auf Adresse a und informiert alle darüber.
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	S | a |  S | a |    |   |    | a |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+A liest von Adresse a, das führt zu einer Anfrage an alle.  
+B sendet die veränderten Daten an A und an M.
+
+**False Sharing** := gemeinsame Speicherzeile, obwohl sich die Daten darin nicht überlappen
+
+Im Zwischenspeicher von B:
+
+	|_____|█████|	Speicherzelle für Adresse a
+	          ↖ verändertes Wort
+
+Im Zwischenspeicher von A:
+
+	|_____|_____|
+	    ↖ Wort ist noch aktuell
+
+Lesezugriff von A auf dieses Wort ist eigentlich in Ordnung.
+
+False Sharing führt unnötig häufig zu Modus I. Daten, die nebeneinander verwendet werden, sollten in verschiedenen Speicherzeilen liegen.
+
 ## Seminare
 ### Aufgabe 1:
 Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt werden. Jeder Thread *i* soll auf dem Bildschirm ausgeben „Hello World from Thread *i*“.
@@ -1652,3 +1775,5 @@ Klasse: `AtomicInteger`
 [^8]:	π\_{B}(y₄) = (a, b, a)
 
 [^9]:	„Präfix-Abschluss“
+
+[^10]:	Zeile wurde verändert und andere Prozessoren können diese Zeile in ihrem Zwischenspeicher haben.
