@@ -709,6 +709,7 @@ Die erzeugten aber noch nicht verbrauchten Datenblöcke werden in einem Puffer (
 1 Erzeuger  
 1 Verbraucher  
 Puffer für 1 Datenblock
+
 	Thread erz:
 		Wiederhole
 			herstellen(datenblock);
@@ -782,6 +783,7 @@ Zusammenhang zu Klammerausdrücken:
 2. Version: 1 Erzeuger, 1 Verbraucher, N Datenblöcke mit N \> 0 beliebig.
 
 Threads erz und verb wie in Version 1.
+
 	Prozedur einreihen(puffer, datenblock):
 		belegen(nichtvoll); // *I' gilt*
 		stock(puffer, datenblock);
@@ -1272,6 +1274,7 @@ Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt wer
 		z++;
 	}
 
+
 ### Aufgabe: Amdahls Gesetz
 1. Finden Sie heraus, welcher Anteil der Zähler-Aufgabe (mit k = 10000 Threads) parallelisierbar ist.
 2. Welchen Anteil erwarten Sie für k = 20000 Threads?
@@ -1570,6 +1573,7 @@ Beweisen Sie, dass für alle x ∈ A^{∞}
 (1) 0 ≤ \#\_{Bel}y - \#\_{Fr}y ≤ 1 für alle y ≤\_{pre}x mit y ∈ A\*  
 äquivalent ist zu  
 (2) ∀ i ∈ N: Belⁱ\_{x} ≤ Frⁱ\_{x} ≤ Belⁱ⁺¹\_{x}
+
 ##### Lösung:
 
 (1) ⇒ (2):  
@@ -1601,6 +1605,7 @@ Damit gilt (1) nicht, Widerspruch!
 	Belⁱ_{x}         Frⁱ_{x}           Belⁱ⁺¹_{x}
 	⎝______________________________________⎠
 	             #_{Bel}y ≤ i + 1
+
 	                ⎛   ①   ⎞⎛   ②   ⎞
 	–––––+–––––––––+–––––––––+–––––––––+–––––––––+–––––
 	 Frⁱ⁻¹_{x}  Belⁱ_{x}  Frⁱ_{x}  Brⁱ⁺¹_{x}  Frⁱ⁺¹_{x}
@@ -1737,6 +1742,7 @@ Klasse: `AtomicInteger`
 	public void unlock() {
 		this.getAndDecrement();			// (5)
 	}
+
 ```
 	Ablauf für 2 Threads:   // ↙ gem. Var. vom Typ IntegerLock
 	     p₁    |     p₂     | c | Bedingung
@@ -1755,6 +1761,60 @@ Klasse: `AtomicInteger`
 	       |   |  (4)   | 0 | 1 |
 	       |   |  (2)   |   |   | false
 ```
+### Aufgabe: Atomic Boolean
+a) Ersetzen Sie in der Zähler-Aufgabe die Anweisung
+
+	lock = new ReentrantLock();
+
+durch die Anweisung
+
+	lock = new TASLock();
+
+Implementieren Sie dazu die Schnittstelle `Lock` durch die Klasse `TASLock` wie folgt:
+
+	import java.util.concurrent.atomic.*;
+	
+	public class TASLock implements java.util.concurrent.Locks.Lock {
+		AtomicBoolean b = new AtomicBoolean(false);
+		
+		public void lock() {
+			while (b.getAndSet(true)) {
+			}
+		}
+		
+		public void unlock() {
+			b.set(false);
+		}
+	}
+
+Vergleichen Sie Ergebnis und Bearbeitungszeit.
+
+b) Variante: `TTASLock`.  
+Im Rumpf von `lock` soll `b.getAndSet` erst dann versucht werden, wenn `b.get()` den Wert `false` liefert.
+
+c) Variante: IDLock.  
+Statt `AtomicBoolean` mit `getAndSet` und `set` soll `AtomicInteger` mit `getAndIncrement` und `getAndDecrement` verwendet werden.
+
+##### Hinweise zu Aufgabe 2 mit Sperren:
+	z++;
+
+wird geändert zu
+
+	l.lock();
+	try {
+		z++;
+	}
+	finally {
+		l.unlock();
+	}
+
+Deklaration von l:
+
+	static Lock l;
+
+Im Hauptprogramm:
+
+	l = new ReentrantLock();
 
 [^1]:	Endliche Folgen
 
