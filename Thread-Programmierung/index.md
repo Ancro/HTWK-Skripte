@@ -1056,7 +1056,7 @@ Die Konsenszahl für eine Klasse (Sprache) K ist definiert als
 	{ ∞, falls K das n-Konsensproblem für alle n ∈ N löst
 	{ n, falls n ∈ N maximal sodass K das n-Konsensproblem löst
 
-##### Satz: (Herlihy, 1991)
+###### Satz: (Herlihy, 1991)
 ```
 	       Klasse K       | Konsenszahl K(K)
 	––––––––––––––––––––––+–––––––––––––––––
@@ -1187,6 +1187,148 @@ Im Zwischenspeicher von A:
 Lesezugriff von A auf dieses Wort ist eigentlich in Ordnung.
 
 False Sharing führt unnötig häufig zu Modus I. Daten, die nebeneinander verwendet werden, sollten in verschiedenen Speicherzeilen liegen.
+
+Verhalten mit `getAndSet`:
+
+	getAndSet(c, b, true)
+
+Dabei ausgeführte Aktionen:
+1. c lesen
+2. b schreiben
+3. c schreiben
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	S | c |  S | a |  S | c |    | c |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+Zustand vorher
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	S | c |  S | a |  S | c |    | c |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+A führt 1. aus.  
+Wert von c im Zwischenspeicher von A ist bereits aktuell; keine Änderung.
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	S | c |  S | c |  S | c |    | c |
+	M | b |    |   |    |   |    |   |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+A führt 2. aus.
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	M | c'|  I | c |  I | c |    | c |
+	M | b |    |   |    |   |    |   |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+A führt 3. aus.
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	S | c'|  S | c'|  S | c'|    | c'|
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+B führt 1. aus.
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	S | c'|  S | c'|  S | c'|    | c'|
+	M | b |  M | b |    |   |    |   |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+B führt 2 aus.
+
+	    A        B        C        M
+	  –––––    –––––    –––––    –––––
+	S | c'|  S | c'|  S | c'|    | c'|
+	M | b |  M | b |    |   |    |   |
+	  –––––    –––––    –––––    –––––
+	____|________|________|________|
+
+B führt 3. aus. Keine Änderung, denn der Wert in c verändert sich nicht dabei.
+
+Alle `getAndSet`-Aufrufe der Warteschleife können ohne Bus-Zugriff abgearbeitet werden.
+
+### 4.4. Bäckerei-Algorithmus
+Bäckerei-Algorithmus (engl. bakery algorithm): von Leslie Lamport 1974 publiziert; Implementierung von Sperren mit atomaren Registern.
+
+Analogie: Jeder, der (in Amerika) eine Bäckerei betritt, zieht zuerst eine laufende Nummer. Der Kunde mit der nächsten Nummer wird als nächster bedient.
+
+Pseudocode mit einer Sperre:
+
+	Typ Thread ID = {0, …, n - 1}; // (n Threads)
+	
+	// Zustand der Sperre
+	volatile flag: boolean[ThreadID]; // init. mit false-Werten
+	volatile label: long[ThreadID]; // init. mit 0-Werten
+	
+	Prozedur belegen():
+		int i := Nummer des aufrufenden Threads;
+		flag[i] := true;
+		label[i] := max{label[0], …, label[n - 1]} + 1;
+		Warte solange ∃k ≠ 1: flag[k] ∧
+		(label[k], k) <_{lex} (label[i], i).
+	
+	Prozedur freigeben():
+		flag[Nummer des aufrufenden Threads] := false;
+
+##### Behauptung:
+Der Bäckerei-Algorithmus hat die Fortschritteigenschaft.
+
+##### Beweis:
+Der Thread i mit dem kleinsten Paar (label[i], i) wartet nicht. Es gibt so ein i, denn \<\_{lex} ist eine Wohlordnung. Damit hat jede nicht-leere Menge ein kleinstes Element.
+
+##### Behauptung:
+Der Bäckerei-Algorithmus ist FCFS[^11].
+
+##### Beweis:
+Falls Thread i den Torweg verlässt, bevor Thread j ihn betritt, dann gilt:
+
+	w_{i}(label[i], v) →
+	r_{j}(label[i], v) →
+	w_{j}(label[j], v')		mit v < v'
+	r_{j}(label[i], true)
+
+Dabei bedeutet `w_{i}(label[i], v)`:  
+Schreibzugriff von Thread i auf die Variable label[i]; der geschriebene Wert ist v.  
+Es gilt flag[i] ∧ (label[i], i) \<\_{lex}(label[j], j).  
+Also wartet Thread h auf Thread i.
+
+Aus Fortschritteigenschaft und FCFS folgt Fairness.
+
+##### Behauptung:
+Der Bäckerei-Algorithmus erfüllt gegenseitigen Ausschluss.
+
+##### Beweis:
+Durch Widerspruch.  
+Angenommen, Threads i und j sind nebeneinander im kritischen Bereich.  
+OBdA[^12] gilt (label[i], i) \<\_{lex}(label[j], j).  
+Sobald Thread j die Warteschleife verlassen hat, gilt  
+**(1)** `flag[i] = false` oder  
+**(2)** `(label[j], j) <_{lex} (label[i], i)`.
+
+Die Werte i und j sind fest. Der Wert von label[j] ändert sich nicht mehr bis zum Betreten des kritischen Bereichs. Der Wert von label[i] kann höchstens größer werden. Wenn also **(2)** beim Verlassen der Warteschleife gilt, dann auch im kritischen Bereich. Widerspruch!
+Also gilt **(1)**. Deswegen
+
+	r_{j}(label[i], _) → // gelesener Wert ist irrelevant
+	w_{j}(label[j], v) →
+	r_{j}(flag[i], false) →
+	w_{i}(flag[i], true) →
+	r_{i}(label[j], v) →
+	w_{i}(label[i], v') →
+
+mit v \< v’, also label[j] \< label[i]. Widerspruch!
 
 ## Seminare
 ### Aufgabe 1:
@@ -1837,3 +1979,7 @@ Im Hauptprogramm:
 [^9]:	„Präfix-Abschluss“
 
 [^10]:	Zeile wurde verändert und andere Prozessoren können diese Zeile in ihrem Zwischenspeicher haben.
+
+[^11]:	First Come First Serve
+
+[^12]:	Ohne Beschränkung der Allgemeinheit
