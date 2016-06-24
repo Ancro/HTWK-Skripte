@@ -1958,6 +1958,79 @@ Im Hauptprogramm:
 
 	l = new ReentrantLock();
 
+### Aufgabe:
+Drei Prozessoren A, B, C seien mit einem Speicherblock M über einen Bus verbunden. Geben Sie den Ablauf wieder inklusive der Änderungen am Zwischenspeicher, wenn nacheinander folgende Anweisungen ausgeführt werden.
+
+a) Prozessor A führt `getAndInc(c, b)` aus  
+b) Prozessor A führt `getAndInc(c, b')` aus  
+c) Prozessor B führt `getAndDec(c, b")` aus
+
+##### Lösung:
+	getAndInc(c, b):
+		b := c;
+		c := c + 1;
+
+Zugriffe:
+1. c lesen
+2. b schreiben
+3. c schreiben
+
+###### a)
+1. A liest c
+		    A        B        C        M
+		  –––––    –––––    –––––    –––––
+		E | c |    |   |    |   |    | c |
+		  –––––    –––––    –––––    –––––
+		____|________|________|________|
+2. A schreibt b
+		    A        B        C        M
+		  –––––    –––––    –––––    –––––
+		E | c |    |   |    |   |    | c |
+		M | b |    |   |    |   |    |   |
+		  –––––    –––––    –––––    –––––
+		____|________|________|________|
+3. A schreibt c
+		    A        B        C        M
+		  –––––    –––––    –––––    –––––
+		M | c'|    |   |    |   |    | c |
+		M | b |    |   |    |   |    |   |
+		  –––––    –––––    –––––    –––––
+		____|________|________|________|
+
+###### b) (keine Änderung)
+1. A liest c
+2. A schreibt b
+3. A schreibt c
+		    A        B        C        M
+		  –––––    –––––    –––––    –––––
+		M | c'|    |   |    |   |    | c |
+		M | b |    |   |    |   |    |   |
+		  –––––    –––––    –––––    –––––
+		____|________|________|________|
+
+###### c)
+1. B liest c. Das führt dazu, dass A c auf den Speicher schreibt. B bekommt den geschriebenen Wert auch mit.
+		    A        B        C        M
+		  –––––    –––––    –––––    –––––
+		S | c'|  S | c |    |   |    | c'|
+		M | b |    |   |    |   |    |   |
+		  –––––    –––––    –––––    –––––
+		____|________|________|________|
+2. B schreibt `b"`
+		    A        B        C        M
+		  –––––    –––––    –––––    –––––
+		S | c'|  S | c |    |   |    | c'|
+		M | b |  M | b"|    |   |    |   |
+		  –––––    –––––    –––––    –––––
+		____|________|________|________|
+3. B schreibt c
+		    A        B        C        M
+		  –––––    –––––    –––––    –––––
+		I | c'|  M | c |    |   |    | c'|
+		M | b |  M | b"|    |   |    |   |
+		  –––––    –––––    –––––    –––––
+		____|________|________|________|
+
 [^1]:	Endliche Folgen
 
 [^2]:	Unendliche Folgen
