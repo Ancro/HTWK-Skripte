@@ -1330,6 +1330,52 @@ Also gilt **(1)**. Deswegen
 
 mit v \< v’, also label[j] \< label[i]. Widerspruch!
 
+### 5.4. Implementierung mit Fauler Synchronisation
+Listenelemente bekommen ein neues Attribut „marked“ (zum Löschen markiert)
+
+Neue Version von `validate`:
+
+	private boolean validate(Node<T> pred, Node<T> curr) {
+		return !pred.marked && !curr.marked && pred.next == curr;
+	}
+
+Löschen:
+
+	public boolean remove(T item) {
+		int k = item.hashCode();
+		boolean done = false;
+		boolean erg = false;
+		while (!done) {
+			Node<T> pred = this.head;
+			Node<T> curr = pred.next;
+			while (curr.key < k) {
+				pred = curr;
+				curr = pred.next;
+			}
+			pred.lock();
+			try {
+				curr.lock();
+				try {
+					if (validate(pred, curr)) {
+						if (curr.key == k) {
+							curr.marked = true;
+							pred.next = curr.next;
+							erg = true;
+						}
+						done = true;
+					}
+				}
+				finally {
+					curr.unlock();
+				}
+			}
+			finally {
+				pred.unlock();
+			}
+		}
+		return erg;
+	}
+
 ## Seminare
 ### Aufgabe 1:
 Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt werden. Jeder Thread *i* soll auf dem Bildschirm ausgeben „Hello World from Thread *i*“.
@@ -1415,7 +1461,6 @@ Es soll ein Java-Hauptprogramm geschrieben werden, in dem 8 Threads angelegt wer
 	synchronized static void inc() {
 		z++;
 	}
-
 
 ### Aufgabe: Amdahls Gesetz
 1. Finden Sie heraus, welcher Anteil der Zähler-Aufgabe (mit k = 10000 Threads) parallelisierbar ist.
@@ -2030,6 +2075,47 @@ Zugriffe:
 		M | b |  M | b"|    |   |    |   |
 		  –––––    –––––    –––––    –––––
 		____|________|________|________|
+
+## Klausurvorbereitung
+### Aufgabe 1:
+Gegeben sei folgendes Programmgragment:
+
+	[1] belegen(l);
+	[2] solange ¬C wiederhole
+	[3]     freigeben(l);
+	[4]     Eine Weile warten;
+	[5]     belegen(l);
+	[6] P
+	[7] freigeben(l);
+
+Dabei sei C eine Bedingung an den Zustand und P sei ein Programmfragment.
+
+Die Sperre l komme weder in C noch in P vor. Es darf vorrausgesetzt werden, dass die Sperre l an keiner anderen Stelle belegt oder freigegeben wird. Alle Markierungen beziehen sich auf den Zeilenanfang, das heißt die Stelle vor der Anweisung.
+
+a) Zeigen Sie, dass `belegen(l)` und `freigeben(l)` immer abwechselnd aufgerufen werden. (2 Punkte)
+
+> ##### Lösung:
+> 1. Fall: Schleife wird nicht durchlaufen, das heißt C gilt von Anfang an. Es wird `belegen(l)`, P, `freigeben(l)` ausgeführt.
+> 2. Fall: Schleife wird durchlaufen, das heißt C gilt am Anfang nicht. Vor dem ersten `freigeben(l)` (Zeile[3]) kommt `belegen(l)` (Zeile [1]). Vor `belegen(l)` in Zeile [5] kommt `freigeben(l)` in Zeile [3]. Vor `freigeben(l)` in Zeile [3], wenn die Schleife bereits durchlaufen wurde, kommt `belegen(l)` in Zeile [5]. Vor dem `freigeben(l)` in Zeile [7] kommt `belegen(l)` in Zeile [5].
+
+b) Auf welche Variablen darf in C und in P zugegriffen werden? (2 Punkte)
+
+> ##### Lösung:
+> Auf alle nicht-gemeinsamen Variablen und auf die von der Sperre `l` bewachten Variablen.
+
+c) Für eine Bedingung B gelte folgendes:
+
+1. Nach der Initialisierung des Systems gilt B.
+2. Wenn B an der Stelle [2] gilt, dann gilt B auch an der Stelle [3].
+3. Wenn B an der Stelle [6] gilt, dann gilt B auch an der Stelle [7].
+
+Zeigen Sie, dass B immer auch an der Stelle [2] gilt. Berücksichtigen Sie dabei insbesondere die Anwesenheit mehrerer nebeneinanderlaufender Threads. (8 Punkte)
+
+> ##### Lösung
+> Threads, die nicht im Besitz der Sperre sind, können am Wert von B nichts ändern. (Wird vorausgesetzt.)
+> Wir beweisen, dass B bei allen Threads immer an den Stellen [2] und [6] gilt, durch Induktion nach der Gesamtzahl n der von allen Threads getätigten Aufrufe von `freigeben(l)`.
+> Wenn n = 0 gilt, dann gilt B nach Variante 1. Alle anderen Threads können noch nicht den kritischen Bereich betreten haben.
+> Sei nun n \> 0. Wenn der letzte `freigeben(l)`-Aufruf des Threads an der Stelle [3] war, dann ist dieser Thread seit Stelle [2] im Besitz der Sperre. Nach Induktionsvorraussetzung gilt B an Stelle [2], und wegen 2. gilt B auch an der Stelle [3]. Seither war kein Thread im kritischen Bereich, also gilt B immer noch. Falls der letzte `freigeben(l)`-Aufruf eines Threads an der Stelle [7] war, gilt entsprechendes.
 
 [^1]:	Endliche Folgen
 
