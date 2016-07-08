@@ -620,20 +620,22 @@ Syntax: Formeln sind aufgebaut mit
 	![](Ablauf.jpg)
 	mit M endlich.)
 - temporale Operatoren
-	-  ⃝
+	- ◯
 		- „next“
 		- „im nächsten Zustand gilt“
-	-  ⃞
+	- ☐
 		- „always“
 		- „in allen zukünftigen Zuständen gilt“
-	-  ⃟
+	- ♢
 		- „eventually“
 		- „in mindestens einem zukünftigen Zustand gilt“
 
-Beispiel: „Wer A sagt, muss auch B sagen.“ ⃞ (A ⇒  ⃟ B)
+Beispiel: „Wer A sagt, muss auch B sagen.“  
+☐ (A ⇒ ♢ B)
 
-„Never change a running system.“ ⃞ (R ⇒  ⃞ R)  
-gleichwertig:  ⃞ (R ⇒  ⃝ R)
+„Never change a running system.“  
+☐ (R ⇒ ☐ R)  
+gleichwertig: ☐ (R ⇒ ◯ R)
 
 Semantik:
 
@@ -647,14 +649,14 @@ Das wird rekursiv definiert durch:
 (𝜎, j) ⊨ p ∧ q : ⇔ (𝜎, j) ⊨ q  
 usw.
 
-(𝜎, j) ⊨  ⃝ p : ⇔ (𝜎, j + 1) ⊨ p  
-(𝜎, j) ⊨  ⃞ p : ⇔ ∀ k ≥ j: (𝜎, k) ⊨ p
-(𝜎, j) ⊨  ⃟ p : ⇔ ∃ k ≥ j: (𝜎, k) ⊨ p
+(𝜎, j) ⊨ ◯ p : ⇔ (𝜎, j + 1) ⊨ p  
+(𝜎, j) ⊨ ☐ p : ⇔ ∀ k ≥ j: (𝜎, k) ⊨ p
+(𝜎, j) ⊨ ♢ p : ⇔ ∃ k ≥ j: (𝜎, k) ⊨ p
 
 Gegenseitiger Ausschluss mit temporal-logischen Formeln:  
 Beispiel:  
 z\_{x} : ⇔ 0 ≤ \#\_{Bel} x - \#\_{Fr} x ≤ 1  
- ⃞ z
+☐ z
 
 Kein Verhungern:  
 beant\_{i x} : ⇔ \#\_{antᵢ} x \> \#\_{belᵢ} x  
@@ -665,8 +667,8 @@ Aktion a ist im Zustand x soeben ausgeführt worden.
 ![](#)
 Semantik dazu:  
 (𝜎, j) ⊨ a : ⇔ 𝜎(j) = a
-
-⃞ (beantᵢ ⇒  ⃟ belᵢ)
+  
+☐ (beantᵢ ⇒ ♢ belᵢ)
 
 ## 3. Synchronisation
 ### 3.1. Signale
@@ -1815,16 +1817,16 @@ Frage: Gilt (1) auch für y im Bereich ⓪?
 Zu Temporaler Logik:  
 Was bedeuten folgende Formeln?
 
-1.  ⃞p: p gilt ab jetzt immer
-2.  ⃞ ⃟p: p gilt unendlich oft; p gilt immer wieder
-3.  ⃟ ⃞p: ab einer gewissen Stelle gilt p immer; P gilt fast immer (:= immer bis auf endlich viele Ausnahmen)
+1. ☐p: p gilt ab jetzt immer
+2. ☐♢p: p gilt unendlich oft; p gilt immer wieder
+3. ♢☐p: ab einer gewissen Stelle gilt p immer; P gilt fast immer (:= immer bis auf endlich viele Ausnahmen)
 
 Gesetze der Linearen Temporalen Logik:
 
-1.  ⃞p ⇒ p (Wenn p immer gilt, dann gilt p jetzt)
-2.  ⃝(¬p) ⇔ ¬ ⃝p
-3.  ⃝(p ⇒ q) ⋀  ⃝p ⇒  ⃝q
-4. p ⋀  ⃞(p ⇒  ⃝p) ⇒  ⃞p
+1. ☐p ⇒ p (Wenn p immer gilt, dann gilt p jetzt)
+2. ◯(¬p) ⇔ ¬◯p
+3. ◯(p ⇒ q) ⋀ ◯p ⇒ ◯q
+4. p ⋀ ☐(p ⇒ ◯p) ⇒ ☐p
 
 ### Aufgabe:
 Programmieren Sie das Erzeuger/Verbraucher-Problem, Version 3 in Java. Um bedingte kritische Bereiche zu implementieren, verwenden sie folgendes Muster:
@@ -2111,11 +2113,105 @@ c) Für eine Bedingung B gelte folgendes:
 
 Zeigen Sie, dass B immer auch an der Stelle [2] gilt. Berücksichtigen Sie dabei insbesondere die Anwesenheit mehrerer nebeneinanderlaufender Threads. (8 Punkte)
 
-> ##### Lösung
+> ##### Lösung:
 > Threads, die nicht im Besitz der Sperre sind, können am Wert von B nichts ändern. (Wird vorausgesetzt.)
 > Wir beweisen, dass B bei allen Threads immer an den Stellen [2] und [6] gilt, durch Induktion nach der Gesamtzahl n der von allen Threads getätigten Aufrufe von `freigeben(l)`.
 > Wenn n = 0 gilt, dann gilt B nach Variante 1. Alle anderen Threads können noch nicht den kritischen Bereich betreten haben.
 > Sei nun n \> 0. Wenn der letzte `freigeben(l)`-Aufruf des Threads an der Stelle [3] war, dann ist dieser Thread seit Stelle [2] im Besitz der Sperre. Nach Induktionsvorraussetzung gilt B an Stelle [2], und wegen 2. gilt B auch an der Stelle [3]. Seither war kein Thread im kritischen Bereich, also gilt B immer noch. Falls der letzte `freigeben(l)`-Aufruf eines Threads an der Stelle [7] war, gilt entsprechendes.
+
+### Aufgabe 2:
+Gegeben sei folgende elementare Ereignisstruktur:
+
+![](Ereignisstruktur.jpeg "Ereignisstruktur")
+
+a) Welche der folgenden Abläufe sind damit möglich? (je 1 Punkt)
+
+- α) acdhebifg
+- β) cabedihfg
+- ɣ) bfacdegih
+- δ) abdcehfgi
+
+##### Lösung:
+- α) nicht möglich, denn b muss vor e kommen
+- β) möglich
+- ɣ) möglich
+- δ) möglich
+
+b) Welche der Schnitte s₁ und s₂ sind in einem System möglich, das heißt entsprechen einem Zustand, den das System einnehmen kann? (4 Punkte)
+
+##### Lösung:
+- s₂ unmöglich, da e → g nicht respektiert wird (e in Zukunft, g in Vergangenheit)
+- s₁ unmöglich, da b → f nicht respektiert wird
+
+### Aufgabe 3:
+Welche der folgenden Eigenschaften sind Sicherheitseigenschaften [^13]**(S)**, welche sind Liveness-Eigenschaften[^14]? Mit Begründung. (je 1 Punkt)
+
+1. Wenn die Bremsleuchte leuchtet, muss die Bremse betätigt worden sein. **(S)** (*nur Bezug auf Vergangenheit*)
+2. Es kommt nicht vor, dass sowohl Zulassventil als auch Ablassventil der Schleuse geöffnet sind. **(S)** (*typisches Verbot*)
+3. Wenn Kunden warten, wird der Friseur einen Kunden bedienen. **(L)** (*„schließlich“*)
+4. Falls der Suchalgorithmus terminiert, ist das Ergebnis ein spezifizierter Wert. **(S)**
+
+### Aufgabe 4:
+Ein System habe eine Sperre l und zwei Threads. Zu jedem Thread i ∈ {1, 2} gebe es die Aktionenmenge Aᵢ := {antᵢ, belᵢ, frᵢ}. Weiter sei A := A₁ ∪ A₂.
+
+Jeder der beiden Threads i ∈ {1, 2} verhalte sich als Zustandsautomat wie folgt:
+
+![](Zustandsautomat.jpeg "Zustandsautomat")
+
+a) Geben Sie für die Menge der endlichen Abläufe von Thread i einen regulären Ausdruck an. (3 Punkte)
+
+##### Lösung:
+(antᵢ belᵢ frᵢ)\* (ε ∪ antᵢ ∪ antᵢ belᵢ)  
+oder  
+(antᵢ belᵢ frᵢ)\* (ε ∪ antᵢ (ε ∪ belᵢ)
+
+b) (Bed. antᵢ, belᵢ, frᵢ wie in der Vorlesung)  
+Wie kann man die Zustände u, v, w umgangssprachlich charakterisieren? (3 Punkte)
+
+##### Lösung:
+w: innerhalb des kritischen Bereiches  
+v: wartend auf die Sperre  
+u: außerhalb kritischer Bereiche
+
+c) Ein Zustand des Gesamtsystems sei gegeben durch ein Paar (s₁, s₂ wobei s₁ der Zustand des Threads 1 und s₂ der Zustand des Threads 2 ist. Welche Zustände des Gesamtsystems widersprechen sich der Forderung nach gegenseitigem Ausschluss? (2 Punkte)
+
+##### Lösung:
+Nur (w, w) ist ausgeschlossen.
+
+d) Was wird mit folgenden Formeln ausgedrückt? (je 2 Punkte)
+
+- α) ☐ ant₁ ⇒ ◯♢ (ant₁ ∨ ant₂)
+
+##### Lösung
+Auf jeden Antrag von Thread 1 folgt schließlich ein Antrag von Thread 1 oder Thread 2.
+ 
+- β) ∀y \<\_{pre} x: 0 ≤ #y ant₁ - #y fr₁ ≤ 1
+
+##### Lösung:
+Zu jedem Zeitpunkt y in dem Ablauf x gilt: Erst nachdem Thread 1 die Sperre freigegeben hat, kann er sie wieder beantragen.
+
+- ɣ) π\_{bel₁, fr₁, bel₂, fr₂} (x) ∉ A\* {bel₁ bel₂, bel₂ bel₁} A\*
+
+##### Lösung:
+Zwischen zwei Belegungen in x muss mindestens eine Freigabe liegen.
+
+e) Drücken Sie mit temporallogischen Formeln aus: (je 2 Punkte)
+
+- δ) Thread 2 befindet sich unendlich oft in einem kritischen Bereich.
+
+##### Lösung:
+☐♢bel₂.
+
+- ε) Jeder Thread, der sich außerhalb eines kritischen Bereiches befindet, beantragt die Sperre.
+
+##### Lösung:
+(☐ fr₁ ⇒ ♢ant₁) ∧ (♢ ant₁)  
+(☐ fr₂ ⇒ ♢ant₂) ∧ (♢ ant₂)
+
+- ζ) Das System ist verklemmungsfrei.
+
+##### Lösung:
+☐ (ant₁ ∨ ant₂) → ♢ (bel₁ ∨ bel₂)
 
 [^1]:	Endliche Folgen
 
@@ -2142,3 +2238,7 @@ Zeigen Sie, dass B immer auch an der Stelle [2] gilt. Berücksichtigen Sie dabei
 [^11]:	First Come First Serve
 
 [^12]:	Ohne Beschränkung der Allgemeinheit
+
+[^13]:	Bezieht sich auf die Vergangenheit.
+
+[^14]:	Verspricht etwas für die Zukunft.
