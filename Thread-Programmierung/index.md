@@ -1887,7 +1887,7 @@ Einfaches Konsensproblem: Konsensproblem, wo jeder Thread seine eigene Thread-ID
 		Falls status = 1, dann:
 			a := i;		// Thread i gewinnt
 		Sonst:
-			a := 3 - 1	// Rivale von Thread i gewinnt
+			a := 3 - i	// Rivale von Thread i gewinnt
 	
 	|   |
 	|   |
@@ -1899,7 +1899,7 @@ Einigkeit:
 Sei i ∈ {1, 2} derjenige Thread, dessen abholen-Aufruf als erstes ausgeführt wird. Thread i bekommt status = 1 und damit a = i. Sein Rivale (Thread 3 - i) bekommt status = 2 und damit a = 3 - (3 - i) = i. Also gilt Einigkeit.
 
 Gültigkeit:  
-Sei i ∈ {1, 2} derjenige Thread, dessen abholen-Aufruf als erstes ausgeführt wird. Thread i bekommt status = 1 und damit a = i. Den Wert i hat er selber vorgeschlagen. Sein Rivale (Thread 3 - 1) bekommt status = 2 und a = i. Da der Rivale verloren hat (Thread i hat gewonnen), muss der Thread i einen Vorschlag gemacht haben (i wegen einfachem Konsensproblem). Also gilt Gültigkeit.
+Sei i ∈ {1, 2} derjenige Thread, dessen abholen-Aufruf als erstes ausgeführt wird. Thread i bekommt status = 1 und damit a = i. Den Wert i hat er selber vorgeschlagen. Sein Rivale (Thread 3 - i) bekommt status = 2 und a = i. Da der Rivale verloren hat (Thread i hat gewonnen), muss der Thread i einen Vorschlag gemacht haben (i wegen einfachem Konsensproblem). Also gilt Gültigkeit.
 
 ### Aufgabe:
 Angenommen, zwei atomare Befehle `getAndInc` und `getAndDec` stehen zur Verfügung. Wie kann man damit Sperren implementieren?
