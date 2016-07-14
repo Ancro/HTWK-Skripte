@@ -2018,12 +2018,12 @@ c) Prozessor B führt `getAndDec(c, b")` aus
 		c := c + 1;
 
 Zugriffe:
-1. c lesen
-2. b schreiben
-3. c schreiben
+1. `c` lesen
+2. `b` schreiben
+3. `c` schreiben
 
 ###### a)
-1. A liest c
+1. A liest `c`
 
 	```
 		    A        B        C        M
@@ -2033,7 +2033,7 @@ Zugriffe:
 		____|________|________|________|
 	```
 
-2. A schreibt b
+2. A schreibt `b`
 
 	```
 		    A        B        C        M
@@ -2044,7 +2044,7 @@ Zugriffe:
 		____|________|________|________|
 	```
 
-3. A schreibt c
+3. A schreibt `c`
 
 	```
 		    A        B        C        M
@@ -2056,9 +2056,9 @@ Zugriffe:
 	```
 
 ###### b) (keine Änderung)
-1. A liest c
-2. A schreibt b
-3. A schreibt c
+1. A liest `c`
+2. A schreibt `b`
+3. A schreibt `c`
 
 	```
 		    A        B        C        M
@@ -2070,7 +2070,7 @@ Zugriffe:
 	```
 
 ###### c)
-1. B liest c. Das führt dazu, dass A c auf den Speicher schreibt. B bekommt den geschriebenen Wert auch mit.
+1. B liest `c`. Das führt dazu, dass A `c` auf den Speicher schreibt. B bekommt den geschriebenen Wert auch mit.
 
 	```
 		    A        B        C        M
@@ -2092,7 +2092,7 @@ Zugriffe:
 		____|________|________|________|
 	```
 
-3. B schreibt c
+3. B schreibt `c`
 
 	```
 		    A        B        C        M
@@ -2229,13 +2229,25 @@ e) Drücken Sie mit temporallogischen Formeln aus: (je 2 Punkte)
 - ε) Jeder Thread, der sich außerhalb eines kritischen Bereiches befindet, beantragt die Sperre.
 
 ##### Lösung:
-(☐ fr₁ ⇒ ♢ant₁) ∧ (♢ ant₁)  
+(☐ fr₁ ⇒ ♢ant₁) ∧ (♢ ant₁) ∨  
 (☐ fr₂ ⇒ ♢ant₂) ∧ (♢ ant₂)
 
 - ζ) Das System ist verklemmungsfrei.
 
 ##### Lösung:
 ☐ (ant₁ ∨ ant₂) → ♢ (bel₁ ∨ bel₂)
+
+### Extra-Aufgabe 6:
+Prozessoren `A`, `B`, `C` und ein Speicherblock liegen an einem gemeinsamen Bus. Jeder Prozessor hat einen Zwischenspeicher. Die Speicherzellen `c` und `b` seien im Zwischenspeicher des Prozessors `C` bereits als Zeilen mit Modus `E` eingetragen.
+
+- a) Prozessor A führt den Befehl `getAndDecrement(c, b)` aus. Geben Sie den genauen Ablauf wieder, inklusive der Änderungen an den Zwischenspeichern. (5 Punkte)
+- a) Wenn Prozessor B dieselbe Operation anschließend ausführt, wie ist dann der Ablauf? (5 Punkte)
+
+##### Lösung:
+
+![](Aufgabe_6.jpg)
+
+——
 
 [^1]:	Endliche Folgen
 
