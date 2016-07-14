@@ -1,5 +1,5 @@
 ## Thread-Programmierung
-### Gliederung
+### Gliederung[^1]
 1. Grundbegriffe
 	1. Threads
 	2. Nicht-Determinismus
@@ -364,7 +364,7 @@ Bemerkung: ≤ lässt sich nicht weiter fortsetzen: „Ordinalzahlen“.
 
 Sei A eine Aktionenmenge.  
 Dann sei A\* := ∪\_{k ∈ N₀} Aᵏ  
-A^{∞} := A\*[^1] ∪ (N → A)[^2]  
+A^{∞} := A\*[^2] ∪ (N → A)[^3]  
 Es gilt: A^{∞} = ∪\_{k ∈ N₀} ({i ∈ N | i ≤ k} → A)  
 Die Länge \#\_{x} einer Aktionenfolge x ist definiert durch
 
@@ -392,7 +392,7 @@ x \<\_{pre} y ⟺ x ≤\_{pre} y ∧ x ≠ y
 Es gilt: \<\_{pre} ist eine Striktordnung (das heißt irreflexiv und transitiv).
 
 ###### Operationen auf Aktionenfolgen:
-rest: A^{∞}\\{ε[^3]} → A^{∞}  
+rest: A^{∞}\\{ε[^4]} → A^{∞}  
 ist definiert durch  
 rest(x)(i) = x(i + 1)
 
@@ -419,11 +419,11 @@ B = {a, b}
 Behauptung: π\_{B} = (a, b, a, b, …)  
 Beweis: Es gilt \#\_{x} = ∞  
 Damit π\_{B}(x) = sup {π\_{B}(y) | y \<\_{pre} x}.  
-y₀ := ε[^4]  
-y₁ := (a)[^5]  
-y₂ := (a, b)[^6]  
-y₃ := (a, b, c)[^7]  
-y₄ := (a, b, c, a)[^8]  
+y₀ := ε[^5]  
+y₁ := (a)[^6]  
+y₂ := (a, b)[^7]  
+y₃ := (a, b, c)[^8]  
+y₄ := (a, b, c, a)[^9]  
 …
 
 Die Anzahl \#\_{B}(x) der Vorkommen von Aktionen aus der Menge B in x ∈ A^{∞} ist definiert durch
@@ -581,7 +581,7 @@ Die Sperre wird freigegeben.
 Gegenseitiger Auschluss:
 
 1. Mit regulären Ausdrücken  
-	Für jeden Ablauf x gilt: Für jedes endliche Anfangsstück y von x gilt: Die Projektion von y auf die Aktionsmenge Bel ∪ Fr ist in der Sprache (Bel Fr)\* (Bel + ε) = PRE[^9]((Bel Fr)\*)
+	Für jeden Ablauf x gilt: Für jedes endliche Anfangsstück y von x gilt: Die Projektion von y auf die Aktionsmenge Bel ∪ Fr ist in der Sprache (Bel Fr)\* (Bel + ε) = PRE[^10]((Bel Fr)\*)
 		Sei Ant := {antᵢ | i ∈ I} und A := Ant ∪ Bel ∪ Fr.
 	Dann kann man gegenseitigen Ausschluss als Formel angeben:  
 	∀ x ∈ A^{∞}: ∀ y ≤\_{pre} x:  
@@ -1042,7 +1042,7 @@ Konsensproblem:
 		init(c);
 	Gemeinsame Variable c wird initialisiert.
 2. Jeder Thread ruft höchstens ein Mal `entscheide(c, v, a)` auf. (c: gemeinsame Variable, v: Vorschlag vom Typ T, a: Variable vom Typ T)
-3. Der Aufruf entscheide(c, v, a) gibt an a einen Wert mit folgenden Eigenschaften:
+3. Der Aufruf `entscheide(c, v, a)` gibt an a einen Wert mit folgenden Eigenschaften:
 	- Einigkeit: Jeder Thread bekommt denselben Wert in a.
 	- Gültigkeit: Der Wert in a wurde von mindestens einem Thread vorgeschlagen.
 
@@ -1133,7 +1133,7 @@ Jede Speicherzelle hat einen Modus:
 - Modified: Zeile wurde verändert. Kein anderer Prozessor hat diese Zeile in seinem Zwischenspeicher.
 - Exclusive: Zeile ist unverändert. Kein anderer Prozessor hat diese Zeile in seinem Zwischenspeicher.
 - Shared: Zeile ist unverändert. Andere Prozessoren können diese Zeile in ihrem Zwischenspeicher haben.
-- Invalid: Zeile enthält keine verwertbaren Daten.[^10]
+- Invalid: Zeile enthält keine verwertbaren Daten.[^11]
 
 Beispiel-Ablauf:  
 A, B, C seien Prozessoren,  
@@ -1292,7 +1292,7 @@ Der Bäckerei-Algorithmus hat die Fortschritteigenschaft.
 Der Thread i mit dem kleinsten Paar (label[i], i) wartet nicht. Es gibt so ein i, denn \<\_{lex} ist eine Wohlordnung. Damit hat jede nicht-leere Menge ein kleinstes Element.
 
 ##### Behauptung:
-Der Bäckerei-Algorithmus ist FCFS[^11].
+Der Bäckerei-Algorithmus ist FCFS[^12].
 
 ##### Beweis:
 Falls Thread i den Torweg verlässt, bevor Thread j ihn betritt, dann gilt:
@@ -1315,7 +1315,7 @@ Der Bäckerei-Algorithmus erfüllt gegenseitigen Ausschluss.
 ##### Beweis:
 Durch Widerspruch.  
 Angenommen, Threads i und j sind nebeneinander im kritischen Bereich.  
-OBdA[^12] gilt (label[i], i) \<\_{lex}(label[j], j).  
+OBdA[^13] gilt (label[i], i) \<\_{lex}(label[j], j).  
 Sobald Thread j die Warteschleife verlassen hat, gilt  
 **(1)** `flag[i] = false` oder  
 **(2)** `(label[j], j) <_{lex} (label[i], i)`.
@@ -1332,7 +1332,7 @@ Also gilt **(1)**. Deswegen
 
 mit v \< v’, also label[j] \< label[i]. Widerspruch!
 
-### 5.4. Implementierung mit Fauler Synchronisation
+### 4.5. Implementierung mit Fauler Synchronisation
 Listenelemente bekommen ein neues Attribut „marked“ (zum Löschen markiert)
 
 Neue Version von `validate`:
@@ -2168,7 +2168,7 @@ b) Welche der Schnitte s₁ und s₂ sind in einem System möglich, das heißt e
 - s₁ unmöglich, da b → f nicht respektiert wird
 
 ### Aufgabe 3:
-Welche der folgenden Eigenschaften sind Sicherheitseigenschaften [^13]**(S)**, welche sind Liveness-Eigenschaften[^14]? Mit Begründung. (je 1 Punkt)
+Welche der folgenden Eigenschaften sind Sicherheitseigenschaften [^14]**(S)**, welche sind Liveness-Eigenschaften[^15]? Mit Begründung. (je 1 Punkt)
 
 1. Wenn die Bremsleuchte leuchtet, muss die Bremse betätigt worden sein. **(S)** (*nur Bezug auf Vergangenheit*)
 2. Es kommt nicht vor, dass sowohl Zulassventil als auch Ablassventil der Schleuse geöffnet sind. **(S)** (*typisches Verbot*)
@@ -2249,32 +2249,34 @@ Prozessoren `A`, `B`, `C` und ein Speicherblock liegen an einem gemeinsamen Bus.
 
 ——
 
-[^1]:	Endliche Folgen
+[^1]:	Original so von Geser übernommen, hat nichts mit der tatsächlichen Gliederung gemein.
 
-[^2]:	Unendliche Folgen
+[^2]:	Endliche Folgen
 
-[^3]:	Leere Aktionenfolge (= Aktionenfolge der Länge 0)
+[^3]:	Unendliche Folgen
 
-[^4]:	y₀ \<\_{pre} x  
+[^4]:	Leere Aktionenfolge (= Aktionenfolge der Länge 0)
+
+[^5]:	y₀ \<\_{pre} x  
 	π\_{B}(y₀) = ε
 
-[^5]:	y₁ \<\_{pre} x  
+[^6]:	y₁ \<\_{pre} x  
 	π\_{B}(y₁) = (a)
 
-[^6]:	π\_{B}(y₂) = (a, b)
+[^7]:	π\_{B}(y₂) = (a, b)
 
-[^7]:	π\_{B}(y₃) = (a, b)
+[^8]:	π\_{B}(y₃) = (a, b)
 
-[^8]:	π\_{B}(y₄) = (a, b, a)
+[^9]:	π\_{B}(y₄) = (a, b, a)
 
-[^9]:	„Präfix-Abschluss“
+[^10]:	„Präfix-Abschluss“
 
-[^10]:	Zeile wurde verändert und andere Prozessoren können diese Zeile in ihrem Zwischenspeicher haben.
+[^11]:	Zeile wurde verändert und andere Prozessoren können diese Zeile in ihrem Zwischenspeicher haben.
 
-[^11]:	First Come First Serve
+[^12]:	First Come First Serve
 
-[^12]:	Ohne Beschränkung der Allgemeinheit
+[^13]:	Ohne Beschränkung der Allgemeinheit
 
-[^13]:	Bezieht sich auf die Vergangenheit.
+[^14]:	Bezieht sich auf die Vergangenheit.
 
-[^14]:	Verspricht etwas für die Zukunft.
+[^15]:	Verspricht etwas für die Zukunft.
